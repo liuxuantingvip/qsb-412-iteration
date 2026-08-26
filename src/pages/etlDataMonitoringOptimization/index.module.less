@@ -1,0 +1,717 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+@radius-8: 8px;
+
+.page {
+  height: 100%;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.tablePanel {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: @border-none;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.viewTabs {
+  flex: none;
+  margin-bottom: @spacing-5;
+}
+
+.viewTabs :global(.arco-tabs-header) {
+  margin-bottom: 0;
+}
+
+.viewTabs :global(.arco-tabs-header-nav) {
+  padding: 0;
+  background: transparent;
+  border: @border-none;
+  border-radius: 0;
+}
+
+.viewTabs :global(.arco-tabs-header-scroll),
+.viewTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.viewTabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.viewTabs :global(.arco-tabs-header-title) {
+  min-width: 0;
+  height: @size-8;
+  justify-content: center;
+  padding: 0 @spacing-5;
+  border-radius: @radius-8;
+}
+
+.viewTabs :global(.arco-tabs-header-title-active) {
+  background: var(--color-bg-2);
+}
+
+.viewTabs :global(.arco-tabs-content) {
+  display: none;
+}
+
+.tabTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-3;
+}
+
+.viewTabClose {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.viewTabClose:hover {
+  color: var(--color-text-1);
+}
+
+.viewContent {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.viewList {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-6;
+  overflow: hidden;
+}
+
+.viewListToolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+}
+
+.viewSearch {
+  width: 320px;
+  flex: none;
+}
+
+.viewSearch :global(.arco-input-inner-wrapper),
+.viewSearch :global(.arco-input-inner-wrapper:hover),
+.viewSearch :global(.arco-input-inner-wrapper-focus) {
+  border-radius: @radius-8;
+}
+
+.viewListToolbar :global(.arco-btn) {
+  border-radius: @radius-8;
+}
+
+.viewGrid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: @spacing-6;
+  overflow: auto;
+  padding-right: @spacing-2;
+}
+
+.viewCard {
+  min-height: 188px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: @spacing-5;
+  padding: @spacing-7;
+  border: @border-1 solid var(--color-border-2);
+  border-radius: @radius-8;
+  background: linear-gradient(180deg, rgba(var(--arcoblue-1), 0.72), var(--color-bg-2) 40%);
+  color: var(--color-text-1);
+  text-align: left;
+  cursor: pointer;
+}
+
+.viewCard:hover {
+  border-color: rgb(var(--arcoblue-4));
+  box-shadow: 0 6px 18px rgba(29, 33, 41, 0.08);
+}
+
+.viewCard strong {
+  display: block;
+  color: var(--color-text-1);
+  font-size: @font-size-title-1;
+  font-weight: @font-weight-600;
+  line-height: 24px;
+}
+
+.viewCard span {
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.viewCard div {
+  display: grid;
+  gap: @spacing-2;
+}
+
+.viewCard small {
+  color: var(--color-text-3);
+  font-size: @font-size-body-2;
+  line-height: 20px;
+}
+
+.viewCard b {
+  max-height: 44px;
+  overflow: hidden;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-400;
+  line-height: 22px;
+}
+
+.monitorView {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  margin-bottom: @spacing-5;
+}
+
+.toolbarActions {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-3;
+}
+
+.filters {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: @spacing-4;
+}
+
+.platformCascader {
+  width: 188px;
+}
+
+.keywordSearchGroup,
+.detailSearchGroup,
+.detailStatusFilterGroup {
+  display: flex;
+  width: 320px;
+  overflow: hidden;
+  border-radius: @radius-8;
+}
+
+.detailSearchGroup {
+  width: 360px;
+}
+
+.detailStatusFilterGroup {
+  width: 300px;
+}
+
+.keywordFieldSelect {
+  width: 106px;
+  flex: none;
+}
+
+.detailStatusFieldSelect {
+  width: 112px;
+  flex: none;
+}
+
+.keywordSearch {
+  flex: 1;
+  min-width: 0;
+}
+
+.detailStatusValueSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+.keywordSearchGroup :global(.arco-select-view),
+.keywordSearchGroup :global(.arco-select-view:hover),
+.keywordSearchGroup :global(.arco-select-focused .arco-select-view),
+.detailSearchGroup :global(.arco-select-view),
+.detailSearchGroup :global(.arco-select-view:hover),
+.detailSearchGroup :global(.arco-select-focused .arco-select-view),
+.detailStatusFieldSelect :global(.arco-select-view),
+.detailStatusFieldSelect :global(.arco-select-view:hover),
+.detailStatusFieldSelect:global(.arco-select-focused) :global(.arco-select-view) {
+  border-radius: @radius-8 0 0 @radius-8;
+}
+
+.keywordSearchGroup :global(.arco-input-inner-wrapper),
+.keywordSearchGroup :global(.arco-input-inner-wrapper:hover),
+.keywordSearchGroup :global(.arco-input-inner-wrapper-focus),
+.detailSearchGroup :global(.arco-input-inner-wrapper),
+.detailSearchGroup :global(.arco-input-inner-wrapper:hover),
+.detailSearchGroup :global(.arco-input-inner-wrapper-focus),
+.detailStatusValueSelect :global(.arco-select-view),
+.detailStatusValueSelect :global(.arco-select-view:hover),
+.detailStatusValueSelect:global(.arco-select-focused) :global(.arco-select-view) {
+  border-radius: 0 @radius-8 @radius-8 0;
+}
+
+.dateRange {
+  width: 252px;
+}
+
+.dateRangeWide {
+  width: 300px;
+}
+
+.statusSelect {
+  width: 148px;
+}
+
+.detailStatusSelect {
+  width: 132px;
+}
+
+.connectorSearch {
+  width: 260px;
+}
+
+.platformCascader :global(.arco-cascader-view),
+.platformCascader :global(.arco-cascader-view:hover),
+.platformCascader :global(.arco-cascader-view-focus),
+.platformCascader :global(.arco-select-view),
+.platformCascader :global(.arco-select-view:hover),
+.platformCascader :global(.arco-select-focused .arco-select-view),
+.statusSelect :global(.arco-select-view),
+.statusSelect :global(.arco-select-view:hover),
+.statusSelect :global(.arco-select-focused .arco-select-view),
+.detailStatusSelect :global(.arco-select-view),
+.detailStatusSelect :global(.arco-select-view:hover),
+.detailStatusSelect :global(.arco-select-focused .arco-select-view),
+.dateRange :global(.arco-picker),
+.dateRange :global(.arco-picker:hover),
+.dateRange :global(.arco-picker-focused),
+.dateRangeWide :global(.arco-picker),
+.dateRangeWide :global(.arco-picker:hover),
+.dateRangeWide :global(.arco-picker-focused),
+.connectorSearch :global(.arco-input-inner-wrapper),
+.connectorSearch :global(.arco-input-inner-wrapper:hover),
+.connectorSearch :global(.arco-input-inner-wrapper-focus) {
+  border-radius: @radius-8;
+}
+
+.iconButton {
+  width: @size-8;
+  min-width: @size-8;
+  padding: 0;
+  border-radius: @radius-8;
+}
+
+.textIconButton {
+  flex: none;
+  border-radius: @radius-8;
+}
+
+.table {
+  min-height: 0;
+  flex: 1;
+}
+
+.table :global(.arco-table),
+.table :global(.arco-table-container) {
+  min-height: 0;
+}
+
+.table :global(.arco-table-cell) {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.annotationStatusCell {
+  width: 100%;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableNameCell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: @spacing-3;
+}
+
+.tableNameCell svg {
+  flex: none;
+  color: rgb(var(--green-6));
+}
+
+.tableNameCell div {
+  min-width: 0;
+  display: grid;
+  gap: @spacing-1;
+}
+
+.tableNameCell span,
+.tableNameCell small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tableNameCell span {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 20px;
+}
+
+.tableNameCell small {
+  color: var(--color-text-3);
+  font-size: @font-size-body-1;
+  line-height: 18px;
+}
+
+.taskLink {
+  max-width: 100%;
+  padding: 0;
+  border: @border-none;
+  background: transparent;
+  color: rgb(var(--arcoblue-6));
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.relatedTaskButton {
+  display: block;
+  width: 100%;
+}
+
+.taskLink:hover {
+  color: rgb(var(--arcoblue-5));
+}
+
+.relatedTasks {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.taskList {
+  max-width: 420px;
+  margin: 0;
+  padding-left: 18px;
+  color: inherit;
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: normal;
+}
+
+.taskList li + li {
+  margin-top: @spacing-1;
+}
+
+.statusTag:global(.arco-tag) {
+  margin: 0;
+  border: @border-none;
+  border-radius: @radius-8;
+  font-size: @font-size-body-3;
+}
+
+.dateStatusTag:global(.arco-tag) {
+  min-width: 64px;
+  justify-content: center;
+}
+
+.statusTagContent {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-1;
+}
+
+.statusTagContent svg {
+  flex: none;
+}
+
+.dateStatusCell {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-2;
+  min-width: 116px;
+  justify-content: center;
+}
+
+.dateStatusButton {
+  display: inline-flex;
+  padding: 0;
+  border: @border-none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dateStatusButton:hover :global(.arco-tag) {
+  box-shadow: 0 0 0 2px rgba(var(--arcoblue-2), 0.8);
+}
+
+.drilldownButton {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-1;
+  padding: 0;
+  border: @border-none;
+  background: transparent;
+  color: rgb(var(--arcoblue-6));
+  font-size: @font-size-body-3;
+  line-height: 20px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+}
+
+.drilldownButton:hover {
+  color: rgb(var(--arcoblue-5));
+}
+
+.table :global(.arco-table-tr:hover) .drilldownButton {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.statusTooltipTarget {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.reasonList {
+  max-width: 520px;
+  margin: 0;
+  padding-left: 18px;
+  color: inherit;
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: normal;
+}
+
+.reasonList li + li {
+  margin-top: @spacing-1;
+}
+
+.statusHelp {
+  display: grid;
+  gap: @spacing-2;
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: normal;
+}
+
+.statusHelpItem {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: flex-start;
+  gap: @spacing-2;
+}
+
+.statusHelpTag:global(.arco-tag) {
+  min-width: 64px;
+  justify-content: center;
+}
+
+.statusHelpDescription {
+  min-width: 0;
+  color: inherit;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.dateStatusEmpty {
+  color: var(--color-text-4);
+}
+
+.detailToolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  margin-bottom: @spacing-5;
+}
+
+.detailTitle {
+  min-width: 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-400;
+  line-height: @size-8;
+}
+
+.detailTitle > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailFilters {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: @spacing-3;
+}
+
+.backButton {
+  height: @size-8;
+  padding: 0 @spacing-2;
+  border-radius: @radius-8;
+  font-weight: @font-weight-400;
+}
+
+.backButton:global(.arco-btn) {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.backButton:global(.arco-btn-text) {
+  color: var(--color-text-1);
+}
+
+.backButton :global(.arco-btn-icon) {
+  margin-right: 0;
+}
+
+.backButton:global(.arco-btn-text:hover) {
+  color: rgb(var(--arcoblue-6));
+}
+
+.logButton {
+  padding: 0 @spacing-2;
+  border-radius: @radius-8;
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.columnSettingsPanel {
+  width: 220px;
+  display: grid;
+  gap: @spacing-3;
+  padding: @spacing-4;
+  border-radius: @radius-8;
+  background: var(--color-bg-popup);
+  box-shadow: 0 4px 10px rgba(29, 33, 41, 0.12);
+}
+
+.columnSettingsTitle {
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.columnSettingsPanel :global(.arco-checkbox) {
+  margin-left: 0;
+  font-size: @font-size-body-3;
+}
+
+.pageFooter {
+  min-height: @size-13;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: @spacing-5;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.customViewModal:global(.arco-modal) {
+  border-radius: @radius-8;
+  overflow: hidden;
+}
+
+.customViewModal :global(.arco-modal-header) {
+  border-radius: @radius-8 @radius-8 0 0;
+}
+
+.customViewModal :global(.arco-modal-content) {
+  padding-top: @spacing-7;
+}
+
+.customViewModal :global(.arco-input-inner-wrapper),
+.customViewModal :global(.arco-input-inner-wrapper:hover),
+.customViewModal :global(.arco-input-inner-wrapper-focus),
+.customViewModal :global(.arco-textarea-wrapper),
+.customViewModal :global(.arco-select-view),
+.customViewModal :global(.arco-btn) {
+  border-radius: @radius-8;
+}
+
+.modalForm {
+  display: grid;
+  gap: @spacing-7;
+}
+
+.formItem {
+  display: grid;
+  gap: @spacing-3;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.formItem b {
+  margin-right: @spacing-2;
+  color: rgb(var(--red-6));
+}
+
+@media (max-width: 1280px) {
+  .viewGrid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .viewGrid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}

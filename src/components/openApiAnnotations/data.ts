@@ -1,0 +1,56 @@
+import type { RequirementAnnotation } from '@/components/requirementAnnotations';
+
+export const openApiAnnotations: RequirementAnnotation[] = [
+  {
+    noteId: 'OAI-1.1',
+    number: '1.1',
+    page: 'API Keys',
+    module: 'API Key 列表',
+    target: 'API Keys 列表字段',
+    rule: 'API Key 是外部 agent 的唯一调用凭证，Key 本身只负责身份识别，开放能力由账号角色决定。',
+    ruleItems: [
+      { text: '列表展示名称、API Key、创建人、创建时间、最近调用、失败原因、操作。' },
+      { text: 'API Key 密文展示，复制图标常驻，复制内容为完整 Key。' },
+      { text: 'Key 列表不展示额外能力配置和状态字段；可调用能力由账号既有租户角色决定。' },
+    ],
+    state: '第一列和操作列固定；长文本单行省略并通过 Tooltip 查看完整内容。',
+    acceptance: '列表不出现额外能力配置或状态字段；复制图标可用于复制完整 API Key。',
+    topTab: '个人中心',
+    menuKey: 'API Keys',
+  },
+  {
+    noteId: 'OAI-1.2',
+    number: '1.2',
+    page: 'API Keys',
+    module: '新建 API Key',
+    target: '新建密钥按钮 / 新建 API Key 弹窗',
+    rule: '创建 API Key 只填写名称，创建成功后立即在列表顶部生成一条可复制的 Key。',
+    ruleItems: [
+      { text: '名称去除首尾空格后保存，空名称不允许创建。' },
+      { text: '生成后不打开二次结果弹窗。' },
+      { text: '新 Key 按创建人账号既有租户角色判断可调用能力。' },
+    ],
+    state: '创建成功关闭弹窗并刷新列表；失败或校验不通过停留在弹窗内。',
+    acceptance: '输入名称创建后，列表新增一行，API Key 密文展示且可复制。',
+    topTab: '个人中心',
+    menuKey: 'API Keys',
+  },
+  {
+    noteId: 'OAI-1.3',
+    number: '1.3',
+    page: 'API Keys',
+    module: '日志与删除',
+    target: 'API Keys 列表 > 操作',
+    rule: '日志用于排查 requestId、接口、错误码和调用时间；删除用于立即废止该 Key。',
+    ruleItems: [
+      { text: '点击日志打开该 Key 的调用日志，不跳转页面。' },
+      { text: '调用日志只保留近 1 年记录，超过 1 年的记录不在前台日志中展示。' },
+      { text: '删除前必须二次确认；确认后列表移除该 Key。' },
+      { text: '删除不影响已有调用日志的排查口径。' },
+    ],
+    state: '删除成功后当前列表刷新；取消删除保持原列表。',
+    acceptance: '日志弹窗可见 requestId；删除确认后当前 Key 不再出现在列表。',
+    topTab: '个人中心',
+    menuKey: 'API Keys',
+  },
+];

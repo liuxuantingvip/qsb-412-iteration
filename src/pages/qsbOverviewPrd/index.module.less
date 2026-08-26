@@ -1,0 +1,89 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  min-width: 0;
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  gap: @spacing-6;
+  padding: @spacing-8 @spacing-9 @size-7;
+  overflow-x: hidden;
+  background: var(--color-bg-2);
+}
+
+.title:global(.arco-typography) {
+  margin: 0 0 @spacing-1;
+  color: var(--color-text-1);
+  font-size: @font-size-title-3;
+  line-height: 1.35;
+}
+
+.layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: @spacing-6;
+}
+
+.panel,
+.section {
+  min-width: 0;
+  display: grid;
+}
+
+.panel {
+  gap: @spacing-6;
+}
+
+.section {
+  gap: @spacing-4;
+}
+
+.section h3 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-700;
+  line-height: 1.5;
+}
+
+.paragraph {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-2;
+  line-height: 1.7;
+}
+
+.table {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.table :global(.arco-table) {
+  width: 100%;
+  font-size: @font-size-body-1;
+}
+
+.table :global(.arco-table-th),
+.table :global(.arco-table-td) {
+  padding: @spacing-4 @spacing-5;
+  border-color: var(--color-border-2);
+  color: var(--color-text-1);
+  line-height: 1.55;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.table :global(.arco-table-th) {
+  background: var(--color-fill-1);
+  color: var(--color-text-2);
+  font-weight: @font-weight-700;
+}
+
+.scenarioTable :global(.arco-table-th:first-child),
+.scenarioTable :global(.arco-table-td:first-child) {
+  width: @size-28;
+  font-weight: @font-weight-700;
+}

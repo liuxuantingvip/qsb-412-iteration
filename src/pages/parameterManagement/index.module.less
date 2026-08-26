@@ -1,0 +1,173 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-7;
+  margin-bottom: @spacing-7;
+}
+
+.filters,
+.toolbarActions,
+.pageFooter,
+.operationCell {
+  display: flex;
+  align-items: center;
+}
+
+.filters {
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: @spacing-4;
+}
+
+.toolbarActions {
+  flex: none;
+  gap: @spacing-4;
+}
+
+.searchInput {
+  width: 240px;
+}
+
+.searchInput :global(.arco-input-inner-wrapper),
+.searchInput :global(.arco-input-inner-wrapper:hover),
+.searchInput :global(.arco-input-inner-wrapper-focus),
+.toolbarActions :global(.arco-btn:not(.arco-btn-shape-circle):not(.arco-btn-shape-round)) {
+  border-radius: @radius-large;
+}
+
+.page :global(.arco-tag) {
+  border-radius: @radius-large;
+}
+
+.tableWrap {
+  min-height: 0;
+  flex: 1;
+}
+
+.tableWrap :global(.arco-table-th),
+.tableWrap :global(.arco-table-td) {
+  font-size: @font-size-body-3;
+}
+
+.nameCell {
+  min-width: 0;
+  line-height: 20px;
+}
+
+.nameCell span {
+  overflow: hidden;
+  display: block;
+  color: var(--color-text-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remarkCell {
+  overflow: hidden;
+  display: block;
+  color: var(--color-text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operationCell {
+  flex-wrap: nowrap;
+}
+
+.operationCell :global(.arco-btn-text) {
+  padding-right: @spacing-1;
+  padding-left: @spacing-1;
+  font-size: @font-size-body-3;
+}
+
+.pageFooter {
+  flex: none;
+  justify-content: flex-end;
+  gap: @spacing-4;
+  min-height: 52px;
+  padding-top: @spacing-4;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
+.editorDrawer :global(.arco-drawer-header) {
+  height: 48px;
+  padding: 0 @spacing-6;
+  border-bottom: 1px solid var(--color-border-2);
+}
+
+.editorDrawer :global(.arco-drawer-title) {
+  font-size: @font-size-body-3;
+  font-weight: 500;
+}
+
+.editorDrawer :global(.arco-drawer-body) {
+  padding: @spacing-6;
+}
+
+.editorDrawer :global(.arco-drawer-footer) {
+  padding: @spacing-5 @spacing-6;
+  border-top: 1px solid var(--color-border-2);
+}
+
+.editorForm :global(.arco-form-label-item),
+.editorForm :global(.arco-input),
+.editorForm :global(.arco-select-view),
+.editorForm :global(.arco-textarea),
+.editorDrawer :global(.arco-table-th),
+.editorDrawer :global(.arco-table-td) {
+  font-size: @font-size-body-3;
+}
+
+.editorForm :global(.arco-input),
+.editorForm :global(.arco-select-view),
+.editorForm :global(.arco-textarea),
+.editorDrawer :global(.arco-btn) {
+  border-radius: @radius-large;
+}
+
+.editorSectionHeader,
+.drawerFooter {
+  display: flex;
+  align-items: center;
+}
+
+.editorSectionHeader {
+  justify-content: space-between;
+  gap: @spacing-4;
+  margin-bottom: @spacing-3;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: 500;
+}
+
+.editorTable {
+  margin-bottom: @spacing-6;
+}
+
+.editorCellFormItem {
+  margin-bottom: 0;
+}
+
+.editorCellFormItem :global(.arco-form-message) {
+  min-height: @size-5;
+}
+
+.drawerFooter {
+  justify-content: flex-end;
+  gap: @spacing-3;
+}

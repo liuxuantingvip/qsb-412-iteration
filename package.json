@@ -1,0 +1,30 @@
+{
+  "private": true,
+  "name": "qsb-412-requirement-prototype",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:etl": "node --test --experimental-strip-types tests/accountNavigation.test.ts tests/etlDataMonitoringStatusModel.test.ts tests/iterationRequirements.test.ts tests/qsbOverviewContent.test.ts"
+  },
+  "dependencies": {
+    "@arco-design/web-react": "^2.66.15",
+    "@icon-park/react": "^1.4.2",
+    "@semi-bot/semi-vchart-theme-qushubao": "^1.0.0",
+    "@visactor/react-vchart": "^2.1.6",
+    "@visactor/vchart": "^2.1.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "less": "^4.2.1",
+    "mermaid": "^11.16.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1"
+  }
+}

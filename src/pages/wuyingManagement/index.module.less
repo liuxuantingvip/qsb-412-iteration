@@ -1,0 +1,275 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.spinWrapper,
+.spinWrapper :global(.arco-spin-children) {
+  height: 100%;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.cloudScopeTabs {
+  flex: none;
+  margin-bottom: @spacing-7;
+}
+
+.cloudScopeTabs :global(.arco-tabs-header) {
+  margin: 0;
+}
+
+.cloudScopeTabs :global(.arco-tabs-header-scroll),
+.cloudScopeTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.cloudScopeTabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.statCard {
+  flex: none;
+  margin-bottom: @spacing-8;
+  border-radius: @radius-large;
+  overflow: hidden;
+}
+
+.statCard :global(.arco-card-body) {
+  border-radius: @radius-large;
+}
+
+.statDivider {
+  height: @size-18;
+}
+
+.tableCard {
+  flex: 1;
+  min-height: 0;
+  border: @border-none;
+  box-shadow: @shadow-none;
+}
+
+.tableCard :global(.arco-card-body) {
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: @spacing-7;
+  flex: none;
+  margin-bottom: @spacing-7;
+}
+
+.toolbarFilters {
+  min-width: 0;
+}
+
+.toolbarForm {
+  column-gap: @spacing-7;
+  flex-wrap: nowrap;
+}
+
+.toolbarForm :global(.arco-form-item) {
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+.keywordSearchItem {
+  width: 340px;
+  flex: none;
+  margin-bottom: 0;
+}
+
+.keywordSearchGroup {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  border-radius: @radius-large;
+}
+
+.keywordSearchGroup :global(.arco-form-item) {
+  margin: 0;
+}
+
+.keywordFieldSelect {
+  width: @size-30;
+  flex: none;
+}
+
+.keywordSearchInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.keywordSearchGroup :global(.arco-select-view),
+.keywordSearchGroup :global(.arco-select-view:hover),
+.keywordSearchGroup :global(.arco-select-focused .arco-select-view) {
+  border-radius: @radius-large 0 0 @radius-large;
+}
+
+.keywordSearchGroup :global(.arco-input-inner-wrapper),
+.keywordSearchGroup :global(.arco-input-inner-wrapper:hover),
+.keywordSearchGroup :global(.arco-input-inner-wrapper-focus) {
+  border-radius: 0 @radius-large @radius-large 0;
+}
+
+.statusFilter {
+  width: 150px;
+}
+
+.creationTimeFilter {
+  width: 240px;
+}
+
+@media (max-width: 1439px) {
+  .keywordSearchItem {
+    width: 250px;
+  }
+
+  .statusFilter {
+    width: 115px;
+  }
+
+  .creationTimeFilter {
+    width: 210px;
+  }
+}
+
+.tableContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-table) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-spin),
+.tableContent :global(.arco-spin-children),
+.tableContent :global(.arco-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-table-body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tableContent :global(.arco-table-cell) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tableContent :global(.arco-table-col-fixed-right),
+.tableContent :global(.arco-table-col-fixed-right-first) {
+  background: var(--color-bg-2);
+}
+
+.tableContent :global(.arco-table-tr:hover > .arco-table-col-fixed-right),
+.tableContent :global(.arco-table-tr:hover > .arco-table-col-fixed-right-first) {
+  background: var(--color-fill-1);
+}
+
+.actionColumn {
+  overflow: visible;
+  text-align: left;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.actionColumn :global(.arco-table-cell) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.actionButtons {
+  display: inline-flex;
+  justify-content: flex-start;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.actionButtons :global(.arco-btn-text) {
+  min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.tableContent :global(.arco-pagination) {
+  flex: none;
+  margin-bottom: 0;
+}
+
+.resizableHeaderCell {
+  position: relative;
+}
+
+.resizableHeaderCell:global(.arco-table-col-fixed-left),
+.resizableHeaderCell:global(.arco-table-col-fixed-left-first),
+.resizableHeaderCell:global(.arco-table-col-fixed-left-last) {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 3;
+  background: var(--color-fill-2);
+}
+
+.resizableHeaderCell:global(.arco-table-col-fixed-right),
+.resizableHeaderCell:global(.arco-table-col-fixed-right-first),
+.resizableHeaderCell:global(.arco-table-col-fixed-right-last) {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 3;
+  background: var(--color-fill-2);
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: (@spacing-2 * -1);
+  bottom: 0;
+  z-index: 2;
+  width: @size-2;
+  cursor: col-resize;
+}
+
+.resizeHandle::after {
+  position: absolute;
+  top: @spacing-5;
+  right: 3px;
+  bottom: @spacing-5;
+  width: @border-1;
+  background: transparent;
+  content: "";
+}
+
+.resizableHeaderCell:hover .resizeHandle::after {
+  background: @color-primary-6;
+}
+.annotatedTabs {
+  display: flex;
+  align-items: center;
+  gap: @spacing-2;
+}
+
+.annotatedTabs .cloudScopeTabs {
+  flex: none;
+}

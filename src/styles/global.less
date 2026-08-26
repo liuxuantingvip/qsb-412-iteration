@@ -1,0 +1,989 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+:root {
+  --qsb-radius-4: 4px;
+  --qsb-radius-8: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-2);
+  color: var(--color-text-1);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  letter-spacing: 0;
+  overflow: hidden;
+}
+
+.annotation-locate-highlight {
+  position: relative;
+  z-index: 2;
+  border-radius: @radius-medium;
+}
+
+.annotation-locate-group-highlight {
+  position: fixed;
+  z-index: 1200;
+  border: 2px dashed @color-danger-6;
+  border-radius: @radius-large;
+  pointer-events: none;
+  animation: annotation-group-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes annotation-group-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(245, 63, 63, 0.12);
+  }
+
+  to {
+    box-shadow: 0 0 0 5px rgba(245, 63, 63, 0.2);
+  }
+}
+
+.annotation-locate-highlight::after {
+  position: absolute;
+  z-index: 3;
+  inset: -5px;
+  border-radius: @radius-large;
+  background:
+    repeating-linear-gradient(90deg, @color-danger-6 0 8px, transparent 8px 14px) 0 0 / 14px 2px repeat-x,
+    repeating-linear-gradient(180deg, @color-danger-6 0 8px, transparent 8px 14px) 100% 0 / 2px 14px repeat-y,
+    repeating-linear-gradient(270deg, @color-danger-6 0 8px, transparent 8px 14px) 100% 100% / 14px 2px repeat-x,
+    repeating-linear-gradient(0deg, @color-danger-6 0 8px, transparent 8px 14px) 0 100% / 2px 14px repeat-y;
+  content: "";
+  pointer-events: none;
+  animation: annotation-dash-flow 1s linear infinite;
+}
+
+@keyframes annotation-dash-flow {
+  from {
+    background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+  }
+
+  to {
+    background-position: 14px 0, 100% 14px, calc(100% - 14px) 100%, 0 calc(100% - 14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .annotation-locate-highlight::after,
+  .annotation-locate-group-highlight {
+    animation: none;
+  }
+}
+
+.qsb-arco-composite-search.arco-input-group {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: @radius-large;
+}
+
+.qsb-arco-composite-search.arco-input-group > .arco-select:first-child {
+  flex: none;
+}
+
+.qsb-arco-composite-search.arco-input-group > .arco-input-search:last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.qsb-arco-composite-search.arco-input-group > .arco-select:first-child .arco-select-view,
+.qsb-arco-composite-search.arco-input-group > .arco-select:first-child .arco-select-view:hover,
+.qsb-arco-composite-search.arco-input-group > .arco-select-focused:first-child .arco-select-view {
+  border-radius: @radius-large 0 0 @radius-large !important;
+}
+
+.qsb-arco-composite-search.arco-input-group > .arco-input-search:last-child .arco-input-inner-wrapper,
+.qsb-arco-composite-search.arco-input-group > .arco-input-search:last-child .arco-input-inner-wrapper:hover,
+.qsb-arco-composite-search.arco-input-group > .arco-input-search:last-child .arco-input-inner-wrapper-focus {
+  border-radius: 0 @radius-large @radius-large 0 !important;
+}
+
+.arco-checkbox .arco-checkbox-mask {
+  border-radius: @radius-small;
+}
+
+.arco-btn:not(.arco-btn-shape-circle):not(.arco-btn-shape-round),
+.arco-select .arco-select-view,
+.arco-input,
+.arco-input-inner-wrapper,
+.arco-input-number,
+.arco-textarea,
+.arco-input-tag,
+.arco-mention,
+.arco-picker {
+  border-radius: @radius-large;
+}
+
+.arco-btn-group .arco-btn:not(:first-child):not(:last-child) {
+  border-radius: @radius-none;
+}
+
+.arco-btn-group .arco-btn:first-child:not(:last-child) {
+  border-radius: @radius-large 0 0 @radius-large;
+}
+
+.arco-btn-group .arco-btn:last-child:not(:first-child) {
+  border-radius: 0 @radius-large @radius-large 0;
+}
+
+.arco-tabs-rounded .arco-tabs-header-title.arco-tabs-header-title-active,
+.arco-tabs-rounded .arco-tabs-header-title.arco-tabs-header-title-active:hover {
+  background-color: var(--color-fill-2);
+}
+
+.arco-table {
+  border: @border-none;
+}
+
+.arco-table .arco-table-container,
+.arco-table .arco-table-header,
+.arco-table .arco-table-content-scroll,
+.arco-table .arco-table-body {
+  border: @border-none !important;
+  outline: @border-none !important;
+  box-shadow: @shadow-none;
+}
+
+.arco-table .arco-table-container {
+  overflow: hidden;
+  border-radius: @radius-large;
+}
+
+.arco-table .arco-table-header {
+  border-radius: @radius-large @radius-large 0 0;
+}
+
+.arco-table .arco-table-container::before {
+  display: none !important;
+}
+
+.arco-table .arco-table-content-scroll::before,
+.arco-table .arco-table-content-scroll::after {
+  box-shadow: @shadow-none !important;
+}
+
+.arco-table-border .arco-table-th.arco-table-col-first,
+.arco-table-border .arco-table-td.arco-table-col-first,
+.arco-table-border .arco-table-expand-fixed-row,
+.arco-table-border-cell:not(.arco-table-border) .arco-table-th.arco-table-col-first,
+.arco-table-border-cell:not(.arco-table-border) .arco-table-td.arco-table-col-first,
+.arco-table-border-header-cell .arco-table-th.arco-table-col-first,
+.arco-table-border-body-cell .arco-table-td.arco-table-col-first {
+  border-left: @border-none !important;
+}
+
+.arco-table table thead tr:first-child th:first-child {
+  border-radius: @radius-large 0 0 0;
+}
+
+.arco-table table thead tr:first-child th:last-child {
+  border-radius: 0 @radius-large 0 0;
+}
+
+.arco-table .arco-table-th:first-child,
+.arco-table .arco-table-td:first-child {
+  border-left: @border-none !important;
+}
+
+.arco-table .arco-table-th:last-child,
+.arco-table .arco-table-td:last-child {
+  border-right: @border-none !important;
+}
+
+.arco-table .arco-table-col-fixed-left,
+.arco-table .arco-table-col-fixed-left-first,
+.arco-table .arco-table-col-fixed-left-last,
+.arco-table .arco-table-col-fixed-right,
+.arco-table .arco-table-col-fixed-right-first,
+.arco-table .arco-table-col-fixed-right-last {
+  z-index: 3;
+}
+
+.arco-table .arco-table-th.arco-table-col-fixed-left,
+.arco-table .arco-table-th.arco-table-col-fixed-left-first,
+.arco-table .arco-table-th.arco-table-col-fixed-left-last,
+.arco-table .arco-table-th.arco-table-col-fixed-right,
+.arco-table .arco-table-th.arco-table-col-fixed-right-first,
+.arco-table .arco-table-th.arco-table-col-fixed-right-last {
+  background: var(--color-neutral-2);
+}
+
+.arco-table .arco-table-td.arco-table-col-fixed-left,
+.arco-table .arco-table-td.arco-table-col-fixed-left-first,
+.arco-table .arco-table-td.arco-table-col-fixed-left-last,
+.arco-table .arco-table-td.arco-table-col-fixed-right,
+.arco-table .arco-table-td.arco-table-col-fixed-right-first,
+.arco-table .arco-table-td.arco-table-col-fixed-right-last {
+  background: var(--color-bg-2);
+}
+
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left,
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left-first,
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left-last,
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right,
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right-first,
+.arco-table .arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right-last {
+  background: var(--color-fill-1);
+}
+
+.requirement-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-2);
+}
+
+.iteration-bar {
+  height: @size-12;
+  min-height: @size-12;
+  display: flex;
+  align-items: center;
+  gap: @spacing-9;
+  padding: 0 @spacing-9;
+  background: var(--color-bg-2);
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+}
+
+.iteration-title {
+  flex: none;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-700;
+  white-space: nowrap;
+}
+
+.iteration-requirements {
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: @spacing-3;
+}
+
+.iteration-requirement.arco-btn-text {
+  position: relative;
+  height: @size-12;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-4;
+  padding: 0 @spacing-5;
+  border: @border-none;
+  border-radius: @radius-large;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+  white-space: nowrap;
+}
+
+.iteration-requirement.arco-btn-text:hover,
+.iteration-requirement.arco-btn-text.active {
+  background: transparent;
+  color: @color-primary-6;
+}
+
+.iteration-requirement.active::after {
+  position: absolute;
+  right: @spacing-5;
+  bottom: 0;
+  left: @spacing-5;
+  height: @border-2;
+  border-radius: @radius-circle @radius-circle 0 0;
+  background: @color-primary-6;
+  content: "";
+}
+
+.iteration-requirement.arco-btn-text.muted,
+.iteration-requirement.arco-btn-text.muted:hover,
+.iteration-requirement.arco-btn-text.muted.active {
+  color: var(--color-text-4);
+}
+
+.iteration-requirement.muted.active::after {
+  background: var(--color-border-3);
+}
+
+.iteration-view-tag {
+  margin: 0;
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+  line-height: 22px;
+}
+
+.iteration-requirement.muted .iteration-view-tag {
+  border-color: var(--color-border-2);
+  background: var(--color-fill-2);
+  color: var(--color-text-4);
+}
+
+.iteration-dropdown-icon {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.iteration-requirement.muted .iteration-dropdown-icon {
+  color: var(--color-text-4);
+}
+
+.annotation-entry {
+  margin-left: auto;
+  border-color: var(--color-border-2);
+  background: var(--color-bg-2);
+}
+
+.annotation-entry:hover {
+  border-color: @color-primary-6;
+  color: @color-primary-6;
+}
+
+.portal-header {
+  height: @size-16;
+  min-height: @size-16;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: @spacing-9;
+  padding: 0 @spacing-9;
+  background: var(--color-bg-2);
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+  line-height: normal;
+}
+
+.portal-brand {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: @spacing-5;
+}
+
+.portal-brand-collapsed {
+  width: @size-12;
+  min-width: @size-12;
+  justify-content: center;
+}
+
+.portal-logo {
+  width: @size-7;
+  height: @size-7;
+  flex: none;
+}
+
+.portal-logo-text {
+  color: var(--color-text-1);
+  font-size: @font-size-title-2;
+  font-weight: @font-weight-700;
+  line-height: @size-7;
+  white-space: nowrap;
+}
+
+.portal-collapse-button.arco-btn {
+  margin-left: auto;
+  color: @color-primary-6;
+}
+
+.portal-brand-collapsed .portal-collapse-button.arco-btn {
+  margin-left: 0;
+}
+
+.portal-top-tabs {
+  min-width: 0;
+  flex: 1;
+  height: @size-16;
+}
+
+.portal-top-tabs .arco-tabs-header {
+  height: @size-16;
+  margin: 0;
+}
+
+.portal-top-tabs .arco-tabs-header-nav,
+.portal-top-tabs .arco-tabs-header-scroll,
+.portal-top-tabs .arco-tabs-header-wrapper {
+  height: @size-16;
+}
+
+.portal-top-tabs .arco-tabs-header-title {
+  height: @size-16;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: @font-size-body-3;
+}
+
+.portal-top-tabs .arco-tabs-header-title-text {
+  border-radius: @radius-medium;
+}
+
+.portal-actions {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: @spacing-7;
+}
+
+.portal-notification-button.arco-btn {
+  width: @size-8;
+  min-width: @size-8;
+  height: @size-8;
+  padding: 0;
+  color: var(--color-text-2);
+  font-size: 18px;
+}
+
+.portal-notification-button.arco-btn .arco-icon {
+  font-size: 18px;
+}
+
+.portal-actions .arco-badge-number {
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.portal-action-divider {
+  display: none;
+}
+
+.portal-user-trigger.arco-btn-text {
+  width: @size-36;
+  min-width: @size-36;
+  height: @size-10;
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  padding: 0 @spacing-5;
+  border: @border-1 @border-solid transparent;
+  border-radius: @radius-large;
+  background: transparent;
+  color: var(--color-text-1);
+  transition:
+    background-color @transition-duration-1 @transition-timing-function-standard,
+    border-color @transition-duration-1 @transition-timing-function-standard;
+}
+
+.portal-user-menu {
+  width: @size-36;
+}
+
+.portal-user-trigger.arco-btn-text:hover {
+  border-color: var(--color-border-2);
+  background: var(--color-fill-2);
+  color: var(--color-text-1);
+}
+
+.portal-user-trigger.arco-btn-text:active,
+.portal-user-trigger.arco-btn-text[aria-expanded='true'] {
+  border-color: var(--color-border-3);
+  background: var(--color-fill-3);
+  color: var(--color-text-1);
+}
+
+.portal-user-trigger.arco-btn-text:focus-visible {
+  border-color: var(--color-primary-light-3);
+  box-shadow: 0 0 0 @border-2 var(--color-primary-light-1);
+}
+
+.portal-avatar {
+  flex: none;
+  background: var(--color-primary-light-1);
+}
+
+.portal-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portal-user-name {
+  width: 66px;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-400;
+  line-height: 22px;
+  text-align: left;
+}
+
+.portal-user-arrow {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--color-text-2);
+}
+
+.requirement-workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.requirement-view {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+.requirement-view-prd {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--color-bg-2);
+}
+
+.requirement-view,
+.portal-popup-root,
+.portal-layout {
+  height: 100%;
+}
+
+.portal-popup-root {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.portal-popup-root > .arco-drawer-wrapper {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000 !important;
+}
+
+.portal-popup-root .arco-modal-mask,
+.portal-popup-root .arco-modal-wrapper {
+  position: absolute !important;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000 !important;
+}
+
+.portal-popup-root > .arco-drawer-wrapper .arco-drawer-mask {
+  position: absolute;
+  inset: 0;
+}
+
+.portal-popup-root > .arco-drawer-wrapper .arco-drawer {
+  z-index: 1;
+}
+
+.portal-body {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.portal-sider {
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-fill-1);
+  border-right: @border-none;
+  box-shadow: @shadow-none !important;
+}
+
+.portal-sider,
+.portal-sider .arco-layout-sider-children,
+.portal-side-menu,
+.portal-side-menu .arco-menu-inner {
+  box-shadow: @shadow-none !important;
+}
+
+.portal-sider::before,
+.portal-sider::after,
+.portal-side-menu::before,
+.portal-side-menu::after {
+  display: none !important;
+  box-shadow: @shadow-none !important;
+}
+
+.portal-side-menu {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--color-fill-1);
+}
+
+.portal-side-menu .arco-menu-inner {
+  padding: @spacing-2 @spacing-6 @spacing-6;
+  gap: @spacing-2;
+}
+
+.portal-side-menu.arco-menu-light .arco-menu-item,
+.portal-side-menu.arco-menu-light .arco-menu-pop-header,
+.portal-side-menu.arco-menu-light .arco-menu-inline-header {
+  background: transparent;
+}
+
+.portal-side-menu .arco-menu-item,
+.portal-side-menu .arco-menu-pop-header {
+  height: @size-10;
+  margin: 0;
+  padding: 9px @spacing-6;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  border-radius: @radius-small;
+}
+
+.portal-side-menu .arco-menu-icon,
+.portal-side-menu .arco-menu-item > svg,
+.portal-side-menu .arco-menu-pop-header > svg,
+.portal-side-menu .arco-menu-inline-header > svg {
+  width: 14px;
+  height: 14px;
+  margin-right: @spacing-7;
+  font-size: @font-size-body-3;
+}
+
+.portal-menu-streamline-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin-right: @spacing-7;
+  vertical-align: middle;
+}
+
+.portal-side-menu .arco-menu-inline-header .portal-menu-streamline-icon {
+  position: relative;
+  top: -2px;
+}
+
+.portal-menu-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-side-menu .arco-menu-selected.arco-menu-item {
+  color: var(--color-text-1);
+  font-weight: @font-weight-500;
+  background: var(--color-neutral-3);
+  border-radius: @radius-large;
+}
+
+.portal-side-menu .arco-menu-inline-header.arco-menu-selected {
+  color: var(--color-text-2);
+  font-weight: @font-weight-400;
+  background: transparent;
+  border-radius: @radius-small;
+}
+
+.portal-side-menu .arco-menu-inline-header.arco-menu-selected .arco-icon {
+  color: var(--color-text-3);
+}
+
+.portal-side-menu .arco-menu-inline-content .arco-menu-selected.arco-menu-item {
+  color: var(--color-text-1);
+  font-weight: @font-weight-500;
+  background: var(--color-neutral-3);
+  border-radius: @radius-large;
+}
+
+.portal-side-menu .arco-menu-item:hover,
+.portal-side-menu .arco-menu-pop-header:hover,
+.portal-side-menu .arco-menu-inline-header:hover {
+  color: var(--color-text-1);
+  background: var(--color-fill-2);
+  border-radius: @radius-large;
+}
+
+.portal-side-menu .arco-menu-inline-header {
+  padding-right: @spacing-4;
+}
+
+.portal-side-menu .arco-menu-inline-content .arco-menu-item {
+  padding-left: @spacing-9;
+  color: var(--color-text-1);
+}
+
+.portal-side-menu.arco-menu-collapse .arco-menu-inner {
+  padding: @spacing-2;
+}
+
+.portal-side-menu.arco-menu-collapse .portal-menu-label {
+  display: none;
+}
+
+.portal-side-menu.arco-menu-collapse .arco-menu-item,
+.portal-side-menu.arco-menu-collapse .arco-menu-pop-header,
+.portal-side-menu.arco-menu-collapse .arco-menu-inline-header {
+  justify-content: center;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.portal-side-menu.arco-menu-collapse .arco-menu-icon,
+.portal-side-menu.arco-menu-collapse .arco-menu-item > svg,
+.portal-side-menu.arco-menu-collapse .arco-menu-pop-header > svg,
+.portal-side-menu.arco-menu-collapse .arco-menu-inline-header > svg {
+  margin-right: 0;
+}
+
+.portal-side-menu.arco-menu-collapse .portal-menu-streamline-icon {
+  margin-right: 0;
+}
+
+.portal-side-menu.arco-menu-collapse .arco-menu-inline-header.arco-menu-selected,
+.portal-side-menu.arco-menu-collapse .arco-menu-pop-header.arco-menu-selected {
+  color: var(--color-text-1);
+  background: var(--color-neutral-3);
+}
+
+.portal-side-menu.arco-menu-collapse .arco-menu-inline-header.arco-menu-selected .arco-icon,
+.portal-side-menu.arco-menu-collapse .arco-menu-pop-header.arco-menu-selected .arco-icon {
+  color: var(--color-text-3);
+}
+
+.portal-content {
+  min-width: 0;
+  height: 100%;
+  padding: @spacing-9;
+  overflow: auto;
+  background: var(--color-bg-2);
+}
+
+.portal-content.portal-content-qsb-overview {
+  padding: 0;
+  background: #fff;
+}
+
+.portal-empty-page {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-run-detail-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-7;
+}
+
+.portal-run-detail-title {
+  color: var(--color-text-1);
+  font-size: @font-size-title-1;
+  font-weight: @font-weight-600;
+  line-height: 24px;
+}
+
+.portal-run-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-5;
+}
+
+.portal-run-detail-list div {
+  display: flex;
+  align-items: flex-start;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.portal-run-detail-list span {
+  flex: none;
+  color: var(--color-text-3);
+}
+
+.portal-run-detail-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-1);
+  font-weight: @font-weight-500;
+}
+
+@media (max-width: 1180px) {
+  .iteration-bar {
+    gap: 14px;
+    padding: 0 @spacing-7;
+  }
+
+  .portal-header {
+    gap: @spacing-7;
+    padding: 0 @spacing-7;
+  }
+
+  .portal-actions {
+    width: auto;
+    min-width: 126px;
+    gap: @spacing-6;
+  }
+}
+
+@media (max-width: 900px) {
+  .requirement-shell {
+    min-width: 0;
+  }
+
+  .iteration-bar {
+    height: auto;
+    min-height: @size-12;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 0;
+    padding: 0 @spacing-6;
+  }
+
+  .iteration-title {
+    width: calc(100% - @size-33);
+  }
+
+  .iteration-requirements {
+    order: 3;
+    width: 100%;
+    height: @size-11;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .iteration-requirements::-webkit-scrollbar {
+    display: none;
+  }
+
+  .iteration-requirement.arco-btn-text {
+    height: @size-11;
+    padding: 0 @spacing-4;
+    font-size: @font-size-body-2;
+  }
+
+  .iteration-requirement.arco-btn-text > span {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .iteration-view-tag {
+    font-size: @font-size-body-1;
+  }
+
+  .annotation-entry {
+    margin-left: auto;
+  }
+
+  .portal-header {
+    height: auto;
+    min-height: @size-14;
+    flex-wrap: wrap;
+    gap: @spacing-4 @spacing-6;
+    padding: @spacing-4 @spacing-6;
+  }
+
+  .portal-brand {
+    width: auto;
+    min-width: @size-28;
+  }
+
+  .portal-brand-collapsed {
+    min-width: 74px;
+  }
+
+  .portal-brand-collapsed .portal-collapse-button {
+    position: static;
+    left: auto;
+  }
+
+  .portal-logo-text {
+    font-size: @font-size-title-2;
+  }
+
+  .portal-top-tabs {
+    order: 3;
+    width: 100%;
+    flex-basis: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .portal-top-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portal-top-tabs .arco-tabs-header,
+  .portal-top-tabs .arco-tabs-header-nav,
+  .portal-top-tabs .arco-tabs-header-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .portal-top-tabs .arco-tabs-header::-webkit-scrollbar,
+  .portal-top-tabs .arco-tabs-header-nav::-webkit-scrollbar,
+  .portal-top-tabs .arco-tabs-header-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portal-actions {
+    min-width: @size-21;
+    gap: @spacing-5;
+  }
+
+  .portal-action-divider,
+  .portal-user-name,
+  .portal-user-arrow {
+    display: none;
+  }
+
+  .portal-user-trigger.arco-btn-text {
+    width: @size-9;
+    min-width: @size-9;
+    padding: 0 @spacing-2;
+    justify-content: center;
+  }
+
+  .portal-content {
+    padding: @spacing-7;
+  }
+}
+
+@media (max-width: 640px) {
+  .iteration-title {
+    width: calc(100% - @size-28);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .annotation-entry.arco-btn {
+    padding: 0 @spacing-4;
+  }
+
+  .portal-body {
+    min-width: 0;
+  }
+
+  .portal-sider {
+    width: @size-12 !important;
+    min-width: @size-12 !important;
+    max-width: @size-12 !important;
+    flex: 0 0 48px !important;
+  }
+
+  .portal-content {
+    padding: @spacing-6;
+  }
+}

@@ -1,0 +1,338 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.tenantPage {
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.pageHeader {
+  height: auto;
+  flex: none;
+  padding: 0;
+  margin-bottom: @spacing-7;
+  background: transparent;
+  line-height: normal;
+}
+
+.pageContent {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scopeTabs {
+  margin: 0;
+}
+
+.scopeTabs :global(.arco-tabs-header) {
+  margin: 0;
+}
+
+.scopeTabs :global(.arco-tabs-header-scroll),
+.scopeTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.scopeTabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.tableCard {
+  height: 100%;
+  min-height: 0;
+  border: @border-none;
+  box-shadow: @shadow-none;
+}
+
+.tableCard :global(.arco-card-body) {
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+
+.tableContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.toolbar {
+  flex: none;
+  margin-bottom: @spacing-7;
+  row-gap: @spacing-4;
+}
+
+.toolbarFilters {
+  min-width: 0;
+}
+
+.toolbarFilters > :global(.arco-form) {
+  width: auto;
+  min-width: 0;
+  flex-flow: row nowrap;
+}
+
+.toolbar :global(.arco-form-item.arco-form-layout-inline) {
+  flex: none;
+  margin-right: @spacing-7;
+  margin-bottom: 0;
+}
+
+.toolbarAction {
+  white-space: nowrap;
+}
+
+.keywordSearchItem {
+  width: 286px;
+  margin-right: @spacing-7;
+}
+
+.keywordSearchGroup {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  border-radius: @radius-large;
+}
+
+.keywordSearchGroup :global(.arco-form-item) {
+  margin: 0;
+}
+
+.keywordFieldSelect {
+  width: @size-23;
+  flex: none;
+}
+
+.keywordSearchInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.keywordSearchGroup :global(.arco-select-view),
+.keywordSearchGroup :global(.arco-select-view:hover),
+.keywordSearchGroup :global(.arco-select-focused .arco-select-view) {
+  border-radius: @radius-large 0 0 @radius-large;
+}
+
+.keywordSearchGroup :global(.arco-input-inner-wrapper),
+.keywordSearchGroup :global(.arco-input-inner-wrapper:hover),
+.keywordSearchGroup :global(.arco-input-inner-wrapper-focus) {
+  border-radius: 0 @radius-large @radius-large 0;
+}
+
+.tableContent :global(.arco-table) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-spin),
+.tableContent :global(.arco-spin-children),
+.tableContent :global(.arco-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-table-body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tableContent :global(.arco-table-cell) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.actionColumn {
+  overflow: visible;
+  text-align: left;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.actionColumn :global(.arco-table-cell) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.actionButtons {
+  display: inline-flex;
+  justify-content: flex-start;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.actionButtons :global(.arco-btn-text) {
+  min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.ellipsisText {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tenantNameCell {
+  display: flex;
+  align-items: center;
+  height: @size-6;
+  min-width: 0;
+  gap: @spacing-3;
+}
+
+.tenantNameText {
+  flex: 1;
+  min-width: 0;
+}
+
+.productListCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: @spacing-3;
+}
+
+.productListText {
+  flex: 1;
+  min-width: 0;
+}
+
+.productFailureTag {
+  flex: none;
+  margin-inline-end: 0;
+}
+
+.childCountTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: @size-6;
+  flex: none;
+  margin-inline-end: 0;
+}
+
+.tableContent :global(.arco-pagination) {
+  flex: none;
+  margin-bottom: 0;
+}
+
+.tenantContent {
+  margin: 0 0 @spacing-8;
+  padding: @spacing-6;
+  border-radius: @radius-small;
+  background: var(--color-fill-1);
+}
+
+.tenantOption + .tenantOption {
+  margin-top: @spacing-6;
+}
+
+.tenantTitle {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.tenantText {
+  margin-top: @spacing-2;
+  color: var(--color-text-1);
+  font-size: @font-size-body-2;
+}
+
+.interestList {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-6;
+}
+
+.interestItem {
+  padding-bottom: @spacing-6;
+  border-bottom: @border-1 @border-solid var(--color-border-1);
+}
+
+.interestTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.interestTitle {
+  color: var(--color-text-1);
+  font-weight: @font-weight-500;
+}
+
+.interestBody {
+  margin-top: @spacing-6;
+}
+
+.cloudDeskConfig {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-5;
+  margin-top: @spacing-6;
+  padding: @spacing-6;
+  border: @border-1 @border-solid var(--color-border-1);
+  border-radius: @radius-small;
+}
+
+.releasePeriodAlert {
+  :global(.arco-alert-title) {
+    font-size: @font-size-body-3;
+    line-height: 22px;
+  }
+}
+
+.cloudFieldRow {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: center;
+  gap: @spacing-5;
+}
+
+.cloudFieldLabel {
+  flex: none;
+  color: var(--color-text-2);
+  font-size: @font-size-body-2;
+}
+
+.cloudNamePreview {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: flex-start;
+  gap: @spacing-5;
+}
+
+.cloudNameInput {
+  width: @size-40;
+}
+
+.cloudResourceDetail {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-4;
+  color: var(--color-text-1);
+}
+
+.connectorTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: @spacing-4 0;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  margin-bottom: @spacing-7;
+}

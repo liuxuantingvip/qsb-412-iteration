@@ -1,0 +1,103 @@
+.page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page > :global([data-note-id='BUL-1']) {
+  flex: 1;
+  min-height: 0;
+}
+
+.page > :global([data-note-id='BUL-1']) > .tableWrap {
+  height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filters :global(.arco-input-inner-wrapper),
+.filters :global(.arco-select-view) {
+  border-radius: var(--qsb-radius-8);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tableWrap {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--qsb-radius-8);
+  background: var(--color-bg-2);
+}
+
+.tableWrap :global(.arco-table),
+.tableWrap :global(.arco-spin),
+.tableWrap :global(.arco-spin-children) {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableWrap :global(.arco-table-container) {
+  flex: 1;
+  min-height: 0;
+}
+
+.tableWrap :global(.arco-table-pagination) {
+  margin-top: auto;
+  padding: 12px 16px;
+}
+
+.typeTag:global(.arco-tag) {
+  border-radius: var(--qsb-radius-4);
+}
+
+.actionButton:global(.arco-btn-text) {
+  height: 28px;
+  padding: 0 4px;
+  font-size: 14px;
+}
+
+.linkCell {
+  color: var(--color-text-2);
+}
+
+.muted {
+  color: var(--color-text-3);
+}
+
+.readStats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.drawerFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

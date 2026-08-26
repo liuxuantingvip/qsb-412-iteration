@@ -1,0 +1,700 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.productShell {
+  height: 100%;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.productContent {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.page {
+  height: 100%;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.toolbar {
+  min-height: @size-10;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-7;
+  margin-bottom: @spacing-7;
+}
+
+.filters,
+.toolbarActions,
+.scopeRow,
+.operationTitle,
+.timeRuleTitle {
+  display: flex;
+  align-items: center;
+}
+
+.filters {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: @spacing-4;
+}
+
+.overviewFilterTags {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: @spacing-2;
+}
+
+.keywordSearchGroup {
+  display: flex;
+  width: 320px;
+  overflow: hidden;
+  border-radius: @radius-large;
+}
+
+.keywordFieldSelect {
+  width: 106px;
+  flex: none;
+}
+
+.keywordSearchInput,
+.keywordSearch {
+  flex: 1;
+  min-width: 0;
+}
+
+.keywordSearchGroup :global(.arco-select-view),
+.keywordSearchGroup :global(.arco-select-view:hover),
+.keywordSearchGroup :global(.arco-select-focused .arco-select-view) {
+  border-radius: @radius-large 0 0 @radius-large;
+}
+
+.keywordSearchGroup :global(.arco-input-inner-wrapper),
+.keywordSearchGroup :global(.arco-input-inner-wrapper:hover),
+.keywordSearchGroup :global(.arco-input-inner-wrapper-focus) {
+  border-radius: 0 @radius-large @radius-large 0;
+}
+
+.toolbarActions {
+  flex: none;
+  flex-wrap: wrap;
+  gap: @spacing-7;
+}
+
+.toolbarDivider {
+  width: @border-1;
+  height: 18px;
+  background: var(--color-border-2);
+}
+
+.tableSpin {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tableSpin :global(.arco-spin-children) {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableSpin :global(.arco-table),
+.tableSpin :global(.arco-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableSpin :global(.arco-table-body) {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tableEmpty:global(.arco-empty) {
+  padding: @spacing-20 0;
+}
+
+.tableEmpty :global(.arco-empty-description) {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.statusTag,
+.triggerTag {
+  margin: 0;
+  border: @border-none;
+  border-radius: @radius-large;
+  font-size: @font-size-body-3;
+}
+
+.page .statusTag:global(.arco-tag),
+.page .triggerTag:global(.arco-tag) {
+  font-size: @font-size-body-3;
+}
+
+.triggerTag {
+  background: var(--color-fill-2);
+  color: var(--color-text-1);
+}
+
+.storageStatusCell {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.storageStatusCell :global(.arco-space-item:last-child) {
+  min-width: 0;
+}
+
+.storageNote {
+  display: inline-block;
+  max-width: 96px;
+  overflow: hidden;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.operationTitle {
+  justify-content: space-between;
+  gap: @spacing-8;
+}
+
+.actionColumn {
+  min-width: @size-38;
+  text-align: left;
+}
+
+.actionColumn :global(.arco-table-cell) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.actionButtons {
+  display: inline-flex;
+  justify-content: flex-start;
+  margin: 0;
+  min-width: @size-24;
+  white-space: nowrap;
+}
+
+.actionButtons :global(.arco-btn-text) {
+  min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.associationCell {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-1;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.pageFooter {
+  min-height: @size-13;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: @spacing-5;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.drawerBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: @spacing-8;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-4;
+}
+
+.formField > label {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-1;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.requiredMark {
+  color: rgb(var(--danger-6));
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.strategyNameInput {
+  width: min(420px, 100%);
+}
+
+.associationTabs:global(.arco-tabs) {
+  width: fit-content;
+}
+
+.associationTabs :global(.arco-tabs-header) {
+  width: fit-content;
+  margin-bottom: 0;
+  padding: @spacing-1;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-fill-1);
+}
+
+.associationTabs :global(.arco-tabs-header-nav) {
+  width: fit-content;
+}
+
+.associationTabs :global(.arco-tabs-header-scroll),
+.associationTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.associationTabs :global(.arco-tabs-header-title) {
+  min-width: 52px;
+  height: @size-7;
+  margin: 0;
+  padding: 0 @spacing-5;
+  border-radius: @radius-large;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  line-height: @size-7;
+  text-align: center;
+}
+
+.associationTabs :global(.arco-tabs-header-title:hover) {
+  color: rgb(var(--primary-6));
+}
+
+.associationTabs :global(.arco-tabs-header-title-active) {
+  color: #fff;
+  background: rgb(var(--primary-6));
+  font-weight: @font-weight-600;
+  box-shadow: @shadow1-down;
+}
+
+.associationTabs :global(.arco-tabs-header-title-active:hover) {
+  color: #fff;
+}
+
+.scopeRow {
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  min-height: @size-7;
+}
+
+.scopeBlock {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-4;
+}
+
+.planTable:global(.arco-table) {
+  width: 100%;
+}
+
+.planTable :global(.arco-table-th),
+.planTable :global(.arco-table-td) {
+  font-size: @font-size-body-3;
+}
+
+.planRemoveButton:global(.arco-btn) {
+  padding: 0 @spacing-2;
+  font-size: @font-size-body-3;
+}
+
+.triggerGroups {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-6;
+}
+
+.triggerGroupBlock {
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.triggerGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-4;
+  min-height: @size-10;
+  padding: @spacing-4 @spacing-6;
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+  background: var(--color-fill-1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.triggerGroupHeader[aria-expanded='false'] {
+  border-bottom: 0;
+}
+
+.triggerGroupTitle {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: @spacing-2;
+}
+
+.triggerGroupHeader :global(.arco-checkbox) {
+  margin-right: 0;
+}
+
+.triggerGroupHeader :global(.arco-checkbox-text) {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-500;
+  line-height: 22px;
+}
+
+.triggerGroupCount {
+  color: var(--color-text-3);
+  font-size: @font-size-body-2;
+  line-height: @size-5;
+}
+
+.triggerGroupIcon,
+.triggerGroupIconCollapsed {
+  flex: none;
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  transition: transform @transition-duration-2 @transition-timing-function-standard;
+}
+
+.triggerGroupIconCollapsed {
+  transform: rotate(-90deg);
+}
+
+.triggerChildren {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: @spacing-4 @spacing-6;
+  padding: @spacing-5 @spacing-6 @spacing-6;
+}
+
+.triggerChildren :global(.arco-checkbox) {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  column-gap: @spacing-2;
+  margin-right: 0;
+}
+
+.triggerChildren :global(.arco-checkbox-mask-wrapper) {
+  flex: none;
+  grid-column: 1;
+  margin-top: 4px;
+}
+
+.triggerChildren :global(.arco-checkbox-text) {
+  display: block;
+  grid-column: 2;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: 0;
+  padding-left: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.ruleHint {
+  margin-top: (@spacing-3 * -1);
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  line-height: @size-5;
+}
+
+.ruleRow {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  align-items: center;
+  gap: @spacing-7;
+  padding: @spacing-4 @spacing-6;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.ruleRow :global(.arco-select) {
+  width: @size-26;
+}
+
+.timeRuleRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: @spacing-4;
+}
+
+.timeRuleTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  min-height: 30px;
+}
+
+.timeRuleContent {
+  width: 100%;
+  padding-top: @spacing-4;
+  border-top: @border-1 @border-solid var(--color-border-2);
+}
+
+.timeRuleRow :global(.arco-picker) {
+  width: min(240px, 100%);
+}
+
+.executeModeRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: @spacing-2;
+}
+
+.executeModeTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  min-height: 30px;
+}
+
+.executeModeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: @spacing-4 @spacing-6;
+}
+
+.executeModeOptions :global(.arco-radio) {
+  margin-right: 0;
+}
+
+.executeRadioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-1;
+  vertical-align: middle;
+}
+
+.executeInfoTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: @size-4;
+  height: @size-4;
+  line-height: @size-4;
+}
+
+.executeInfoIcon {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  cursor: help;
+}
+
+.executeResourceContent {
+  width: 100%;
+  padding-top: @spacing-4;
+  border-top: @border-1 @border-solid var(--color-border-2);
+}
+
+.executeModeRow .executeResourceSelect:global(.arco-select) {
+  width: min(240px, 100%);
+}
+
+.strategyDrawer {
+  max-width: calc(100vw - @spacing-9);
+}
+
+.strategyDrawer :global(.arco-drawer-header) {
+  height: @size-13;
+  padding: 0 @spacing-7;
+}
+
+.strategyDrawer :global(.arco-drawer-content) {
+  padding: @spacing-7 @spacing-9;
+}
+
+.strategyDrawer :global(.arco-drawer-footer) {
+  display: flex;
+  justify-content: flex-end;
+  padding: @spacing-5 @spacing-7;
+}
+
+.runDetailDrawer :global(.arco-drawer-body) {
+  padding: @spacing-7;
+}
+
+.runDetailBody {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-7;
+}
+
+.runDetailBody section {
+  padding: @spacing-6;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.runDetailBody h3 {
+  margin: 0 0 @spacing-5;
+  font-size: 16px;
+}
+
+.runDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: @spacing-5 @spacing-8;
+}
+
+.runDetailGrid > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-2;
+}
+
+.runDetailGrid span {
+  color: var(--color-text-3);
+}
+
+.runDetailGrid strong {
+  color: var(--color-text-1);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+@media (max-width: 1400px) {
+  .filters {
+    gap: @spacing-3;
+  }
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filters,
+  .toolbarActions {
+    width: 100%;
+  }
+
+  .filters :global(.arco-select) {
+    min-width: @size-33;
+  }
+
+  .keywordSearchGroup {
+    width: 280px;
+  }
+
+  .toolbarActions {
+    justify-content: flex-end;
+    gap: @spacing-5;
+  }
+
+  .pageFooter {
+    min-height: 0;
+    flex-wrap: wrap;
+    gap: @spacing-4 @spacing-6;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    min-width: 0;
+  }
+
+  .toolbar {
+    gap: @spacing-5;
+    margin-bottom: @spacing-6;
+  }
+
+  .filters {
+    align-items: stretch;
+  }
+
+  .filters > :global(.arco-select),
+  .filters :global(.arco-btn) {
+    width: 100% !important;
+  }
+
+  .keywordSearchGroup {
+    width: 100%;
+  }
+
+  .toolbarActions {
+    justify-content: space-between;
+  }
+
+  .toolbarDivider {
+    display: none;
+  }
+
+  .scopeRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .triggerGroups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ruleRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ruleRow :global(.arco-select) {
+    width: 100%;
+  }
+
+  .strategyDrawer :global(.arco-drawer-content) {
+    padding: 14px @spacing-7;
+  }
+}

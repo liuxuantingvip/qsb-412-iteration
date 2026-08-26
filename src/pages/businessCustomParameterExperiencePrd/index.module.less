@@ -1,0 +1,201 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  min-width: 0;
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  gap: @spacing-6;
+  padding: @spacing-8 @spacing-9 @size-7;
+  overflow-x: hidden;
+  background: var(--color-bg-2);
+}
+
+.title:global(.arco-typography) {
+  margin: 0 0 @spacing-1;
+  color: var(--color-text-1);
+  font-size: @font-size-title-3;
+  line-height: 1.35;
+}
+
+.layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: @spacing-6;
+}
+
+.panel {
+  min-width: 0;
+  display: grid;
+  gap: @spacing-6;
+}
+
+.section {
+  min-width: 0;
+  display: grid;
+  gap: @spacing-4;
+}
+
+.section h3 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-700;
+  line-height: 1.5;
+}
+
+.subTitle {
+  margin: 0 0 @spacing-3;
+  color: var(--color-text-1);
+  font-size: @font-size-body-2;
+  font-weight: @font-weight-700;
+  line-height: 1.5;
+}
+
+.paragraph {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-2;
+  line-height: 1.7;
+}
+
+.sectionStack {
+  display: grid;
+  gap: @spacing-5;
+}
+
+.flowGrid {
+  display: grid;
+  gap: @spacing-6;
+}
+
+.mermaidBlock {
+  min-width: 0;
+  overflow: hidden;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.mermaidHeader {
+  min-height: 34px;
+  padding: @spacing-3 @spacing-4 @spacing-3 @spacing-5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-6;
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+  background: var(--color-fill-1);
+}
+
+.mermaidHeader h4 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-2;
+  font-weight: @font-weight-700;
+  line-height: 1.5;
+}
+
+.mermaidControls {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: @spacing-2;
+  color: var(--color-text-2);
+  font-size: @font-size-body-1;
+}
+
+.mermaidControls button {
+  min-width: @size-6;
+  height: @size-6;
+  padding: 0 7px;
+  border: @border-1 @border-solid transparent;
+  border-radius: @radius-large;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: @font-size-body-1;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.mermaidControls button:hover {
+  border-color: var(--color-border-3);
+  background: var(--color-fill-2);
+  color: var(--color-text-1);
+}
+
+.mermaidControls span {
+  min-width: 38px;
+  text-align: center;
+}
+
+.mermaidViewport {
+  height: 360px;
+  overflow: auto;
+  background: @color-bg-2;
+}
+
+.mermaidCanvas {
+  width: max-content;
+  min-width: 100%;
+  padding: 18px;
+  transform-origin: 0 0;
+}
+
+.mermaidCanvas :global(svg) {
+  display: block;
+  max-width: none;
+}
+
+.mermaidError {
+  padding: @spacing-7;
+  color: @color-danger-6;
+  font-size: @font-size-body-1;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.table {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.table :global(.arco-table) {
+  width: 100%;
+  font-size: @font-size-body-1;
+}
+
+.table :global(.arco-table-th),
+.table :global(.arco-table-td) {
+  padding: @spacing-4 @spacing-5;
+  border-color: var(--color-border-2);
+  color: var(--color-text-1);
+  line-height: 1.55;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.table :global(.arco-table-th) {
+  background: var(--color-fill-1);
+  color: var(--color-text-2);
+  font-weight: @font-weight-700;
+}
+
+.scenarioTable :global(.arco-table-th:first-child),
+.scenarioTable :global(.arco-table-td:first-child) {
+  width: @size-24;
+  font-weight: @font-weight-700;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 18px @spacing-7 @size-7;
+  }
+
+  .title:global(.arco-typography) {
+    font-size: @font-size-title-2;
+  }
+}

@@ -1,0 +1,271 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+@radius-8: 8px;
+
+.markerTarget {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+  vertical-align: middle;
+}
+
+.markerBlock,
+.markerFill {
+  min-width: 0;
+  width: 100%;
+  display: block;
+}
+
+.markerFill {
+  height: 100%;
+}
+
+.markerFill > * {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.drawer {
+  width: 420px;
+  min-width: 420px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: @border-1 @border-solid var(--color-border-2);
+  background: var(--color-bg-2);
+  z-index: 10;
+}
+
+.drawerHeader {
+  height: @size-16;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 @spacing-7;
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+}
+
+.drawerTitleRow {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: @spacing-4;
+}
+
+.drawerTitle {
+  color: var(--color-text-1);
+  font-size: @font-size-title-1;
+  line-height: @size-6;
+}
+
+.drawerCount {
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.drawerBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-6;
+  padding: @spacing-6;
+}
+
+.filterTabs :global(.arco-tabs-content) {
+  display: none;
+}
+
+.filterTabs :global(.arco-tabs-header-scroll),
+.filterTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.filterTabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.annotationList {
+  flex: 1;
+  min-height: 0;
+  padding-right: @spacing-2;
+  overflow-y: auto;
+}
+
+.group + .group {
+  margin-top: @spacing-8;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: @spacing-4;
+}
+
+.annotationCard {
+  padding: @spacing-6;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.annotationCard + .annotationCard {
+  margin-top: @spacing-4;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: @spacing-4;
+}
+
+.numberBadge {
+  flex: none;
+}
+
+.cardTitle {
+  min-width: 0;
+  flex: 1;
+}
+
+.cardTitle strong,
+.cardTitle span {
+  display: block;
+}
+
+.cardTitle span {
+  margin-top: @spacing-1;
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.locateButton {
+  flex: none;
+  margin-top: (@spacing-2 * -1);
+}
+
+.cardSection {
+  margin-top: @spacing-5;
+}
+
+.cardSectionLabel {
+  margin-right: @spacing-3;
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.cardSectionValue {
+  display: block;
+  margin-top: @spacing-2;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: pre-wrap;
+}
+
+.annotationListText {
+  margin: @spacing-2 0 0;
+  padding-left: 18px;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.annotationSubListText {
+  margin-top: @spacing-1;
+  padding-left: @spacing-8;
+  list-style-type: lower-alpha;
+}
+
+.annotationItemLine {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: @spacing-3;
+}
+
+.inlinePreviewList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: @spacing-3;
+}
+
+.tagPreview:global(.arco-tag) {
+  margin: 0;
+  border: none;
+  border-radius: @radius-8;
+  font-size: @font-size-body-3;
+}
+
+.tagPreviewContent {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-1;
+}
+
+.tagPreviewContent svg {
+  flex: none;
+}
+
+.alertPreview {
+  flex: 1 0 100%;
+  margin-top: @spacing-2;
+  padding: @spacing-3 @spacing-4;
+}
+
+.fieldPreview {
+  display: inline-flex;
+  align-items: center;
+  min-height: @size-6;
+  padding: 0 @spacing-4;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-small;
+  background: var(--color-fill-2);
+  color: var(--color-text-2);
+  font-size: @font-size-body-1;
+  line-height: 22px;
+}
+
+.emptyPreview {
+  display: inline-flex;
+  align-items: center;
+  min-height: @size-6;
+  padding: 0 @spacing-4;
+  border: @border-1 @border-dashed var(--color-border-3);
+  border-radius: @radius-small;
+  color: var(--color-text-3);
+  font-size: @font-size-body-1;
+  line-height: 22px;
+}
+
+@media (max-width: 900px) {
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(420px, 100vw);
+    min-width: 0;
+    box-shadow: @shadow3-left;
+  }
+
+  .popover {
+    width: min(340px, calc(100vw - @spacing-13));
+  }
+}
+
+@media (max-width: 640px) {
+  .drawerHeader {
+    height: @size-14;
+  }
+
+  .drawerBody {
+    padding: @spacing-5;
+  }
+}

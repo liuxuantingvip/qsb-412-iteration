@@ -1,0 +1,817 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.tableCard {
+  flex: 1;
+  min-height: 0;
+  border: @border-none;
+  box-shadow: @shadow-none;
+}
+
+.tableCard :global(.arco-card-body) {
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+}
+
+.tableContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.toolbar {
+  min-height: @size-10;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-6;
+  margin-bottom: @spacing-7;
+}
+
+.filters,
+.toolbarActions,
+.toolbarTop,
+.toolbarBottom,
+.actionButtons,
+.statusLine,
+.drawerFooter,
+.sectionHeader,
+.reportMeta,
+.configActions {
+  display: flex;
+  align-items: center;
+}
+
+.toolbarTop {
+  justify-content: space-between;
+  gap: @spacing-7;
+}
+
+.toolbarBottom {
+  justify-content: space-between;
+  gap: @spacing-7;
+}
+
+.industryTabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.industryTabs :global(.arco-tabs-header) {
+  margin: 0;
+}
+
+.industryTabs :global(.arco-tabs-header-scroll),
+.industryTabs :global(.arco-tabs-header-wrapper) {
+  padding-left: 0;
+}
+
+.industryTabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.industryTabs :global(.arco-tabs-content) {
+  display: none;
+}
+
+.filters {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: @spacing-6;
+}
+
+.keywordSearchInput {
+  width: 220px;
+  flex: none;
+}
+
+.keywordSearchInput:global(.arco-input-search),
+.keywordSearchInput :global(.arco-input-inner-wrapper),
+.keywordSearchInput :global(.arco-input) {
+  border-radius: @radius-large;
+}
+
+.keywordSearchInput :global(.arco-input-inner-wrapper) {
+  min-height: @size-8;
+}
+
+.filterSelect {
+  width: @size-35;
+  flex: none;
+}
+
+.tagFilterSelect {
+  width: @size-43;
+  flex: none;
+}
+
+.toolbarActions {
+  flex: none;
+  gap: @spacing-4;
+}
+
+.tableSpin {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tableSpin :global(.arco-spin-children) {
+  height: 100%;
+}
+
+.tableContent :global(.arco-table) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-spin),
+.tableContent :global(.arco-spin-children),
+.tableContent :global(.arco-table-container) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tableContent :global(.arco-table-body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tableContent :global(.arco-table-cell) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tableContent :global(.arco-table-th.arco-table-col-fixed-left),
+.tableContent :global(.arco-table-th.arco-table-col-fixed-left-first),
+.tableContent :global(.arco-table-th.arco-table-col-fixed-left-last),
+.tableContent :global(.arco-table-th.arco-table-col-fixed-right),
+.tableContent :global(.arco-table-th.arco-table-col-fixed-right-first),
+.tableContent :global(.arco-table-th.arco-table-col-fixed-right-last) {
+  background: var(--color-fill-2);
+}
+
+.tableContent :global(.arco-table-td.arco-table-col-fixed-left),
+.tableContent :global(.arco-table-td.arco-table-col-fixed-left-first),
+.tableContent :global(.arco-table-td.arco-table-col-fixed-left-last),
+.tableContent :global(.arco-table-td.arco-table-col-fixed-right),
+.tableContent :global(.arco-table-td.arco-table-col-fixed-right-first),
+.tableContent :global(.arco-table-td.arco-table-col-fixed-right-last) {
+  background: var(--color-bg-2);
+}
+
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left),
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left-first),
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-left-last),
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right),
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right-first),
+.tableContent :global(.arco-table-tr:hover > .arco-table-td.arco-table-col-fixed-right-last) {
+  background: var(--color-fill-1);
+}
+
+.tableContent :global(.arco-pagination) {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex: none;
+  margin-bottom: 0;
+}
+
+.tableContent :global(.arco-pagination-total-text) {
+  flex: 1;
+  min-width: 0;
+  margin-right: @spacing-6;
+}
+
+.paginationTotal {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
+.paginationCount {
+  margin-left: auto;
+}
+
+.connectorName {
+  color: @color-primary-6;
+  cursor: pointer;
+}
+
+.statusTag {
+  margin: 0;
+  border: @border-none;
+  border-radius: @radius-large;
+  font-size: @font-size-body-3;
+}
+
+.statusLine {
+  gap: @spacing-2;
+}
+
+.actionButtons {
+  display: inline-flex;
+  justify-content: flex-start;
+  margin: 0;
+  min-width: @size-32;
+  gap: @spacing-4;
+  font-size: @font-size-body-3;
+  white-space: nowrap;
+}
+
+.actionButtons :global(.arco-btn-text) {
+  min-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+  font-size: @font-size-body-3;
+}
+
+.actionColumn {
+  overflow: visible;
+  font-size: @font-size-body-3;
+  text-align: left;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.actionColumn :global(.arco-table-cell) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.pageFooter {
+  min-height: @size-13;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: @spacing-5;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.drawerBody {
+  min-width: 0;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.drawerResizeHandle {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  bottom: 0;
+  width: @size-2;
+  cursor: col-resize;
+}
+
+.drawerResizeHandle::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: @border-2;
+  background: transparent;
+  content: '';
+  transition: background 0.15s ease;
+}
+
+.drawerResizeHandle:hover::after {
+  background: @color-primary-6;
+}
+
+.sectionHeader {
+  justify-content: space-between;
+  margin-bottom: @spacing-7;
+}
+
+.sectionTitle {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: @spacing-7;
+}
+
+.fullField {
+  grid-column: 1 / -1;
+}
+
+.hiddenField {
+  display: none;
+}
+
+.timeConfigSection {
+  width: 100%;
+  min-width: 0;
+}
+
+.timeTypeConfigBlock {
+  width: 100%;
+}
+
+.timeConfigList {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-4;
+}
+
+.timeTypeCard {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-4;
+  padding: @spacing-4 @spacing-7;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.timeTypeCardHeader {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  cursor: pointer;
+}
+
+.timeTypeCardHeader :global(.arco-checkbox) {
+  line-height: 22px;
+}
+
+.timeTypeCardHeader :global(.arco-checkbox-text) {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.timeTypeDivider {
+  height: @border-1;
+  background: var(--color-border-2);
+}
+
+.timeConfigCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: @spacing-7;
+  width: 100%;
+  min-width: 0;
+}
+
+.timeConfigCol {
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  min-width: 0;
+}
+
+.timeConfigColTitle {
+  flex: none;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+.timeConfigControlRow {
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  flex: 1;
+  min-width: 0;
+}
+
+.periodSelect {
+  width: 115px;
+  flex: none;
+}
+
+.timePicker {
+  flex: 1;
+  min-width: 0;
+}
+
+.reportList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reportCard {
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+  overflow: hidden;
+}
+
+.reportHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @spacing-7;
+  padding: @spacing-6 14px;
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+}
+
+.reportMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: @spacing-7;
+  padding: @spacing-6 14px;
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+  background: var(--color-fill-1);
+}
+
+.reportEditGrid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: @spacing-6;
+  min-width: 0;
+}
+
+.reportEditGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-3;
+  min-width: 0;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
+.chipBox {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: @spacing-3;
+  min-height: @size-8;
+  padding: @spacing-2 @spacing-4;
+  border: @border-1 @border-dashed var(--color-border-3);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.emptyText {
+  color: var(--color-text-4);
+  font-size: @font-size-body-2;
+}
+
+.validationPanel {
+  margin: @spacing-6 14px;
+  padding: @spacing-6;
+  border: @border-1 @border-dashed var(--color-border-3);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+}
+
+.validationHeader {
+  margin-bottom: @spacing-5;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.validationInline,
+.rangeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: @spacing-4;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
+.rangeRow {
+  margin-top: @spacing-5;
+}
+
+.rangeRow :global(.arco-input-number) {
+  width: @size-28;
+}
+
+.reportCard :global(.arco-table),
+.reportCard :global(.arco-table-cell),
+.reportCard :global(.arco-table .arco-btn),
+.reportCard :global(.arco-table .arco-input),
+.reportCard :global(.arco-table .arco-input-inner-wrapper),
+.reportCard :global(.arco-table .arco-select-view),
+.reportCard :global(.arco-table .arco-input-number) {
+  font-size: @font-size-body-3;
+}
+
+.reportCard :global(.arco-input),
+.reportCard :global(.arco-input-inner-wrapper),
+.reportCard :global(.arco-input-number),
+.reportCard :global(.arco-select-view) {
+  border-radius: @radius-large;
+}
+
+.validationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: @spacing-6;
+  margin-top: @spacing-6;
+}
+
+.validationGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-3;
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
+.disabledText {
+  color: var(--color-text-4);
+}
+
+.sumConfigBody {
+  padding-top: @spacing-2;
+}
+
+.reportFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: @spacing-6 14px;
+  border-top: @border-1 @border-solid var(--color-border-2);
+}
+
+.reportName {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.reportSub {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+}
+
+.uploadName {
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.uploadHint {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+}
+
+.packageCard {
+  display: flex;
+  align-items: center;
+  gap: @spacing-6;
+  min-height: @size-16;
+  margin-top: (@spacing-4 * -1);
+  padding: @spacing-6 14px;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-fill-1);
+}
+
+.packageIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: @size-10;
+  height: @size-10;
+  border-radius: @radius-medium;
+  background: @color-primary-1;
+  color: @color-primary-6;
+  font-size: @font-size-body-2;
+  font-weight: @font-weight-600;
+}
+
+.packageMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.configActions {
+  justify-content: space-between;
+  gap: @spacing-6;
+  margin-bottom: @spacing-4;
+}
+
+.bizParamConfigBlock {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-3;
+  margin-bottom: @spacing-7;
+}
+
+.bizParamConfigActions {
+  display: flex;
+  align-items: center;
+  min-height: @size-6;
+}
+
+.bizParamConfigActions :global(.arco-btn-text) {
+  min-width: 0;
+  padding-right: @spacing-2;
+  padding-left: 0;
+}
+
+.bizParamConfigTableWrap {
+  display: flex;
+  align-items: stretch;
+  gap: @spacing-2;
+  width: 100%;
+  min-width: 0;
+}
+
+.bizParamConfigTable {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+  font-size: @font-size-body-3;
+}
+
+.bizParamConfigBlock :global(.arco-input),
+.bizParamConfigBlock :global(.arco-input-inner-wrapper),
+.bizParamConfigBlock :global(.arco-select-view) {
+  border-radius: @radius-large;
+  font-size: @font-size-body-3;
+}
+
+.bizParamConfigTh,
+.bizParamConfigTd {
+  min-width: 0;
+  min-height: @size-10;
+  display: flex;
+  align-items: center;
+  border-right: @border-1 @border-solid var(--color-border-2);
+}
+
+.bizParamConfigTh {
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+}
+
+.bizParamConfigLastCell {
+  border-right: @border-none;
+}
+
+.bizParamConfigTh:nth-child(n),
+.bizParamConfigTd:nth-child(n) {
+  padding: 0 @spacing-6;
+}
+
+.bizParamConfigTh {
+  background: var(--color-fill-2);
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.bizParamConfigHeaderButton {
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: @font-weight-600;
+}
+
+.bizParamConfigHeaderButton :global(.arco-btn-content) {
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-2;
+  min-width: 0;
+}
+
+.bizParamConfigHeaderButton span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bizParamConfigHeaderButton svg {
+  flex: none;
+  color: var(--color-text-3);
+}
+
+.bizParamConfigHeaderFormItem {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.bizParamConfigTd {
+  background: var(--color-bg-2);
+}
+
+.bizParamConfigAdd {
+  width: @size-16;
+  min-height: @size-20;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: @spacing-1;
+  padding: 0;
+  border-radius: @radius-large;
+  font-size: @font-size-body-3;
+}
+
+.bizParamConfigAdd :global(.arco-btn-content) {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: @spacing-1;
+  line-height: @line-height-base;
+}
+
+.bizParamConfigAdd :global(.arco-icon) {
+  flex: none;
+  margin: 0;
+}
+
+.bizParamHeartbeatRow {
+  display: flex;
+  align-items: center;
+  gap: @spacing-4;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+}
+
+.drawerFooter {
+  position: sticky;
+  z-index: 2;
+  bottom: (@spacing-6 * -1);
+  justify-content: flex-end;
+  gap: @spacing-4;
+  min-height: @size-16;
+  margin: auto (@spacing-7 * -1) (@spacing-6 * -1);
+  padding: @spacing-6 @spacing-7;
+  border-top: @border-1 @border-solid var(--color-border-2);
+  background: var(--color-bg-2);
+}
+
+@media (max-width: 1180px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .toolbarActions {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 860px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeConfigCols {
+    grid-template-columns: 1fr;
+  }
+
+  .timeConfigCol {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .timeConfigControlRow {
+    width: 100%;
+  }
+
+  .reportEditGrid {
+    grid-template-columns: 1fr;
+  }
+}

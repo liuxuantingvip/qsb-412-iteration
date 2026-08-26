@@ -1,0 +1,339 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  --control-border-radius: 8px;
+
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-2);
+}
+
+.pushDrawer {
+  --control-border-radius: 8px;
+}
+
+.page,
+.pushDrawer {
+  :global(.arco-input-wrapper),
+  :global(.arco-input-inner-wrapper),
+  :global(.arco-input),
+  :global(.arco-select-view),
+  :global(.arco-textarea-wrapper),
+  :global(.arco-textarea),
+  :global(.arco-picker),
+  :global(.arco-input-tag),
+  :global(.arco-input-number),
+  :global(.arco-alert) {
+    border-radius: var(--control-border-radius) !important;
+  }
+}
+
+.tabs {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  row-gap: @spacing-6;
+}
+
+.tabs :global(.arco-tabs-header) {
+  margin-bottom: 0;
+}
+
+.tabs :global(.arco-tabs-header-nav),
+.tabs :global(.arco-tabs-header-scroll),
+.tabs :global(.arco-tabs-header-wrapper) {
+  flex: none;
+  padding-left: 0;
+}
+
+.tabs :global(.arco-tabs-header-title:first-child) {
+  margin-left: 0;
+}
+
+.tabs > :global(.arco-tabs-content) {
+  min-height: 0;
+  flex: 1;
+}
+
+.tabs :global(.arco-tabs-content-inner),
+.tabs :global(.arco-tabs-pane) {
+  height: 100%;
+}
+
+.tabPage {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: @spacing-5;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.toolbar {
+  flex: none;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filters {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.keywordInput {
+  width: 220px;
+  flex: none;
+}
+
+.filterSelect {
+  width: 136px;
+  flex: none;
+}
+
+.dateRange {
+  width: 250px;
+  flex: none;
+}
+
+.channelSelect {
+  width: 180px;
+  flex: none;
+}
+
+.channelTypeTag :global(.arco-tag-content) {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.channelLogo {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+.tableArea {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.tableArea > :global(.arco-spin),
+.tableArea :global(.arco-spin-children) {
+  width: 100%;
+  display: block;
+}
+
+.tableArea :global(.arco-table) {
+  width: 100% !important;
+  min-width: 0;
+}
+
+.tableArea :global(.arco-table-th) {
+  background: var(--color-fill-1) !important;
+}
+
+.actionButton {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.tableArea :global(.arco-table-container) {
+  border: 1px solid var(--color-border-2);
+  border-radius: 4px;
+}
+
+.resizableHeaderCell {
+  position: relative;
+}
+
+.resizableHeaderCell:global(.arco-table-col-fixed-left),
+.resizableHeaderCell:global(.arco-table-col-fixed-left-first),
+.resizableHeaderCell:global(.arco-table-col-fixed-left-last) {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 3;
+  background: var(--color-fill-1) !important;
+}
+
+.resizableHeaderCell:global(.arco-table-col-fixed-right),
+.resizableHeaderCell:global(.arco-table-col-fixed-right-first),
+.resizableHeaderCell:global(.arco-table-col-fixed-right-last) {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 3;
+  background: var(--color-fill-1) !important;
+}
+
+.tableArea :global(.arco-table-td.arco-table-col-fixed-left),
+.tableArea :global(.arco-table-td.arco-table-col-fixed-left-first),
+.tableArea :global(.arco-table-td.arco-table-col-fixed-left-last),
+.tableArea :global(.arco-table-td.arco-table-col-fixed-right),
+.tableArea :global(.arco-table-td.arco-table-col-fixed-right-first),
+.tableArea :global(.arco-table-td.arco-table-col-fixed-right-last) {
+  background: var(--color-bg-2);
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 8px;
+  cursor: col-resize;
+}
+
+.resizeHandle::after {
+  position: absolute;
+  top: 8px;
+  right: 3px;
+  bottom: 8px;
+  width: 1px;
+  background: transparent;
+  content: "";
+}
+
+.resizableHeaderCell:hover .resizeHandle::after {
+  background: @color-primary-6;
+}
+
+.tableArea :global(.arco-empty) {
+  padding: 64px 0;
+}
+
+.pageFooter {
+  flex: none;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.testRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.channelReferenceAlert {
+  margin-bottom: 16px;
+}
+
+.strategyForm {
+  margin-top: 16px;
+}
+
+.messageTypeRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.messageObjectTypeSelect {
+  width: 180px;
+  flex: none;
+}
+
+.scheduleEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-border-2);
+  border-radius: 4px;
+}
+
+.timeRangeList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.timeRangeRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeRangeLabel {
+  width: 46px;
+  flex: none;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.timeRangeRow > :global(.arco-picker) {
+  width: 260px;
+}
+
+.safeMessage {
+  color: var(--color-text-1);
+  line-height: 22px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detailList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+}
+
+.detailItem {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 16px;
+}
+
+.detailItem dt {
+  color: var(--color-text-3);
+  line-height: 22px;
+}
+
+.detailItem dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text-1);
+  line-height: 22px;
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .keywordInput,
+  .filterSelect,
+  .dateRange,
+  .channelSelect {
+    width: 100%;
+  }
+
+  .filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
