@@ -2,7 +2,6 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   Button,
   DatePicker,
-  Drawer,
   Empty,
   Message,
   Select,
@@ -77,7 +76,6 @@ export default function PortalOperationLog() {
   const [dateRange, setDateRange] = useState<[string, string]>(defaultDateRange);
   const [filters, setFilters] = useState<PageFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeRecord, setActiveRecord] = useState<OperationLogRecord | null>(null);
   const [mockState, dispatchMock] = useReducer(
     reducePortalOperationLogMockState,
     initialPortalOperationLogMockState,
@@ -166,7 +164,6 @@ export default function PortalOperationLog() {
     setSource(nextSource as OperationLogSource);
     setFilters((current) => ({ ...current, credentialName: undefined }));
     setCurrentPage(1);
-    setActiveRecord(null);
   };
 
   const updateFilter = <Key extends keyof PageFilters>(key: Key, value: PageFilters[Key]) => {
@@ -257,34 +254,18 @@ export default function PortalOperationLog() {
     }, EXPORT_MOCK_DELAY_MS);
   };
 
-  const detailAvailable = Boolean(
-    activeRecord?.failureReason
-    || activeRecord?.requestSummary
-    || activeRecord?.changes?.length,
-  );
-
   useEffect(() => () => {
     if (exportTimerRef.current) window.clearTimeout(exportTimerRef.current);
     if (queryTimerRef.current) window.clearTimeout(queryTimerRef.current);
     exportLockRef.current = false;
   }, []);
 
-  useEffect(() => {
-    const openDetail = () => {
-      setActiveRecord(records.find((record) => (
-        record.failureReason || record.requestSummary || record.changes?.length
-      )) || records[0] || null);
-    };
-    window.addEventListener('portal-operation-log:open-detail', openDetail);
-    return () => window.removeEventListener('portal-operation-log:open-detail', openDetail);
-  }, [records]);
-
   return (
     <div className={styles.page}>
       <PortalOperationLogAnnotationMarker noteId="POL-1" layout="block">
         <div className={styles.pageHeader}>
           <Title className={styles.title} heading={5}>操作日志</Title>
-          <PortalOperationLogAnnotationMarker noteId="POL-6">
+          <PortalOperationLogAnnotationMarker noteId="POL-5">
             <Button
               type="primary"
               icon={<IconDownload />}
@@ -408,105 +389,9 @@ export default function PortalOperationLog() {
                 </Button>
               </div>
             ) : <Empty description={sourceEmptyText[source]} />}
-            onRow={(record) => ({
-              className: styles.clickableRow,
-              onClick: () => setActiveRecord(record),
-            })}
           />
         </div>
       </PortalOperationLogAnnotationMarker>
-
-      <Drawer
-        width={720}
-        title="操作详情"
-        visible={Boolean(activeRecord)}
-        footer={null}
-        onCancel={() => setActiveRecord(null)}
-      >
-        <PortalOperationLogAnnotationMarker noteId="POL-5" layout="block">
-          <div className={styles.drawerContent}>
-            {activeRecord ? (
-              <>
-                <div className={styles.basicInfoSection}>
-                  <h3>基础信息</h3>
-                  <div className={styles.basicInfoGrid}>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>操作时间</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.operatedAt}</span>
-                    </div>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>操作者</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.operatorName}</span>
-                    </div>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>功能模块</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.module}</span>
-                    </div>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>操作类型</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.operationType}</span>
-                    </div>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>{operationResultLabel}</span>
-                      <span className={styles.basicInfoValue}>
-                        <ResultTag result={activeRecord.result} />
-                      </span>
-                    </div>
-                    <div className={styles.basicInfoItem}>
-                      <span className={styles.basicInfoLabel}>IP 地址</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.ip}</span>
-                    </div>
-                    {activeRecord.source !== 'portal' ? (
-                      <div className={styles.basicInfoItem}>
-                        <span className={styles.basicInfoLabel}>凭证名称</span>
-                        <span className={styles.basicInfoValue}>
-                          {activeRecord.credentialName || '-'}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                {detailAvailable ? (
-                  <div className={styles.detailSection}>
-                    <h3>操作详情</h3>
-                    <div className={styles.detailList}>
-                      {activeRecord.failureReason ? (
-                        <div className={styles.detailItem}>
-                          <span>失败原因</span>
-                          <strong>{activeRecord.failureReason}</strong>
-                        </div>
-                      ) : null}
-                      {activeRecord.requestSummary ? (
-                        <div className={styles.detailItem}>
-                          <span>脱敏请求摘要</span>
-                          <strong>{activeRecord.requestSummary}</strong>
-                        </div>
-                      ) : null}
-                      {activeRecord.changes?.length ? (
-                        <div className={styles.changeTable}>
-                          <div className={styles.changeHeader}>
-                            <span>变更字段</span>
-                            <span>变更前</span>
-                            <span>变更后</span>
-                          </div>
-                          {activeRecord.changes.map((change) => (
-                            <div className={styles.changeRow} key={change.field}>
-                              <span>{change.field}</span>
-                              <strong>{change.before}</strong>
-                              <strong>{change.after}</strong>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        </PortalOperationLogAnnotationMarker>
-      </Drawer>
     </div>
   );
 }

@@ -95,115 +95,10 @@
   height: 100%;
 }
 
-.clickableRow {
-  cursor: pointer;
-}
-
-.clickableRow:hover :global(.arco-table-td) {
-  background: var(--color-fill-1);
-}
-
 .queryFailedState {
   display: grid;
   justify-items: center;
   gap: 8px;
-}
-
-.drawerContent {
-  display: grid;
-  gap: 24px;
-}
-
-.basicInfoSection,
-.detailSection {
-  display: grid;
-  gap: 12px;
-}
-
-.basicInfoSection h3,
-.detailSection h3 {
-  margin: 0;
-  color: var(--color-text-1);
-  font-size: 16px;
-}
-
-.basicInfoGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 32px;
-}
-
-.basicInfoItem {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border-2);
-}
-
-.basicInfoLabel {
-  color: var(--color-text-3);
-  font-size: 12px;
-  line-height: 20px;
-}
-
-.basicInfoValue {
-  min-width: 0;
-  color: var(--color-text-1);
-  font-size: 14px;
-  line-height: 22px;
-  overflow-wrap: anywhere;
-}
-
-.detailList {
-  display: grid;
-  gap: 0;
-}
-
-.detailItem {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border-2);
-}
-
-.detailItem span,
-.changeHeader {
-  color: var(--color-text-3);
-}
-
-.detailItem strong,
-.changeRow strong {
-  color: var(--color-text-1);
-  font-weight: 400;
-}
-
-.changeTable {
-  margin-top: 8px;
-  border-top: 1px solid var(--color-border-2);
-}
-
-.changeHeader,
-.changeRow {
-  display: grid;
-  grid-template-columns: 112px repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border-2);
-}
-
-.changeHeader {
-  background: var(--color-fill-1);
-  font-size: 12px;
-}
-
-.changeHeader span,
-.changeRow > * {
-  padding: 0 12px;
-  overflow-wrap: anywhere;
 }
 
 @media (max-width: 1180px) {
@@ -217,11 +112,5 @@
 
   .filterItem:first-child {
     flex-basis: 250px;
-  }
-}
-
-@media (max-width: 720px) {
-  .basicInfoGrid {
-    grid-template-columns: 1fr;
   }
 }

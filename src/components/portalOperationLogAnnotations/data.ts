@@ -35,7 +35,7 @@ export const portalOperationLogAnnotations: RequirementAnnotation[] = [
     ruleItems: [
       { text: '门户操作来源于登录成员实际发到服务端的业务动作；API、MCP 来源于可归属到当前租户及凭证绑定成员的服务端审计记录。' },
       { text: '三类来源都记录成功与失败；用户取消、仅前端校验未发请求、字段无实际变化不生成日志。' },
-      { text: '进入页面、查看详情、搜索、筛选、切换 Tab 等浏览行为，以及系统定时任务、自动重试、自动推送等无法归属到成员或其凭证的自动行为不展示。' },
+      { text: '进入页面、搜索、筛选、切换 Tab 等浏览行为，以及系统定时任务、自动重试、自动推送等无法归属到成员或其凭证的自动行为不展示。' },
     ],
     stateLabel: '状态与异常',
     stateItems: [
@@ -102,32 +102,6 @@ export const portalOperationLogAnnotations: RequirementAnnotation[] = [
   {
     noteId: 'POL-5',
     number: '5',
-    page: '操作日志',
-    module: '详情与脱敏',
-    target: '操作详情抽屉',
-    ruleLabel: '业务数据来源',
-    ruleItems: [
-      { text: '详情来源于所选服务端审计记录；展示列表基础信息，API、MCP 展示操作发生时保存的凭证名称快照。' },
-      { text: '失败操作展示服务端记录的可读失败原因；编辑类操作只展示实际变化字段及脱敏后的变更前、变更后值。' },
-      { text: '请求信息按已有安全规则脱敏；Token、API Key、密码、Cookie、密钥和完整敏感参数不写入日志且不展示。' },
-    ],
-    stateLabel: '状态与异常',
-    stateItems: [
-      { text: '成功、失败详情均展示对应结果；不存在实际变化的编辑请求不应有日志或伪造变更前后值。' },
-      { text: '详情数据缺失时显示「详情暂不可用」，不影响关闭抽屉或继续使用列表。' },
-    ],
-    recoveryLabel: '恢复方式',
-    recoveryItems: [
-      { text: '详情缺失时返回列表后可再次打开同一条记录；持续缺失由服务端按日志标识排查，不改用未脱敏原始参数。' },
-    ],
-    acceptance: '分别验收成功、失败、编辑变更、凭证已撤销和详情缺失；页面不得出现 Token、API Key、密码、Cookie、密钥或完整敏感参数。',
-    topTab: '个人中心',
-    menuKey: '操作日志',
-    openEvent: 'portal-operation-log:open-detail',
-  },
-  {
-    noteId: 'POL-6',
-    number: '6',
     page: '操作日志',
     module: '导出与留痕',
     target: '导出按钮',

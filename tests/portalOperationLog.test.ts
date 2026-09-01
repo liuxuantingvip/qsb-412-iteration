@@ -22,7 +22,7 @@ import { portalOperationLogAnnotations } from '../src/components/portalOperation
 
 test('operation log annotations keep the approved order and account navigation target', () => {
   assert.deepEqual(portalOperationLogAnnotations.map((item) => item.noteId), [
-    'POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6',
+    'POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5',
   ]);
   assert.ok(portalOperationLogAnnotations.every((item) => item.topTab === '个人中心'));
   assert.ok(portalOperationLogAnnotations.every((item) => item.menuKey === '操作日志'));
@@ -319,7 +319,7 @@ test('operation log page exposes the three source tabs and approved filters', ()
   assert.doesNotMatch(page, /placeholder=["'](?:搜索|全部)?操作内容["']/);
   assert.doesNotMatch(page, /placeholder=["'](?:搜索|全部)?操作结果["']/);
   assert.doesNotMatch(page, /data-note-id=["']POL-/);
-  for (const id of ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6']) {
+  for (const id of ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5']) {
     assert.equal(
       (page.match(new RegExp(`<PortalOperationLogAnnotationMarker noteId=["']${id}["']`, 'g')) ?? []).length,
       1,
@@ -356,11 +356,11 @@ test('page keeps failure recovery off the business UI and controls pagination', 
 
   const reloadBlock = page.slice(page.indexOf('const reloadQuery'), page.indexOf('const exportCurrentRecords'));
   assert.doesNotMatch(reloadBlock, /setSource|setFilters|setDateRange|setCurrentPage/);
-  const exportBlock = page.slice(page.indexOf('const exportCurrentRecords'), page.indexOf('const detailAvailable'));
+  const exportBlock = page.slice(page.indexOf('const exportCurrentRecords'), page.indexOf('useEffect(() => () =>'));
   assert.doesNotMatch(exportBlock, /setSource|setFilters|setDateRange|setCurrentPage/);
 });
 
-test('filter controls stay on one row and detail basics use the approved spacious layout', () => {
+test('filter controls stay on one row and the page has no detail interaction', () => {
   const page = readFileSync(
     new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
     'utf8',
@@ -370,13 +370,12 @@ test('filter controls stay on one row and detail basics use the approved spaciou
     assert.doesNotMatch(page, new RegExp(`<span>${label}<\\/span>`));
   }
   assert.match(page, /aria-label="时间范围"/);
-  assert.match(page, /width=\{720\}/);
-  assert.match(page, /className={styles\.basicInfoGrid}/);
-  assert.doesNotMatch(page, /className={styles\.basicInfoItemWide}/);
-  assert.doesNotMatch(page, /<Descriptions/);
+  assert.doesNotMatch(page, /<Drawer/);
+  assert.doesNotMatch(page, /activeRecord|setActiveRecord/);
+  assert.doesNotMatch(page, /onRow=/);
 });
 
-test('detail drawer starts with basic information and only renders meaningful audit details', () => {
+test('operation detail drawer and its styles are removed', () => {
   const page = readFileSync(
     new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
     'utf8',
@@ -386,15 +385,11 @@ test('detail drawer starts with basic information and only renders meaningful au
     'utf8',
   );
 
-  assert.doesNotMatch(page, /className={styles\.operationSummary}/);
-  assert.doesNotMatch(page, /className={styles\.operationSummaryMeta}/);
-  assert.match(
-    page,
-    /{detailAvailable \? \(\s*<div className={styles\.detailSection}>/,
+  assert.doesNotMatch(page, /操作详情|基础信息|详情暂不可用/);
+  assert.doesNotMatch(
+    styles,
+    /\.drawerContent|\.basicInfo|\.detailSection|\.detailList|\.detailItem|\.changeTable|\.changeHeader|\.changeRow/,
   );
-  assert.doesNotMatch(page, /详情暂不可用/);
-  assert.doesNotMatch(styles, /\.basicInfoItem[\s\S]{0,300}background:/);
-  assert.match(styles, /\.changeHeader/);
 });
 
 test('POL-4 marker owns the remaining flex height and its table fills the marker', () => {
@@ -456,7 +451,7 @@ test('PRD covers the approved portal operation log review scope', () => {
   assert.match(prd, /系统自动行为不展示/);
   assert.match(prd, /操作内容和操作结果不作为筛选条件/);
   assert.match(prd, /列表按操作时间倒序分页/);
-  assert.match(prd, /点击整行打开详情抽屉/);
+  assert.doesNotMatch(prd, /详情抽屉|点击整行|详情暂不可用/);
   assert.match(prd, /变更时间、来源或任一筛选条件后回到第 1 页/);
   assert.match(prd, /固定八列安全 DTO/);
   assert.match(prd, /逐字段脱敏并中和表格公式载荷/);
@@ -472,10 +467,11 @@ test('PRD branch mounts the portal operation log PRD explicitly', () => {
   );
 });
 
-test('POL-5 keeps its detail-opening event for annotation location', () => {
-  assert.equal(
-    portalOperationLogAnnotations.find((item) => item.noteId === 'POL-5')?.openEvent,
-    'portal-operation-log:open-detail',
+test('annotations do not expose a removed operation-detail entry', () => {
+  assert.ok(portalOperationLogAnnotations.every((item) => !item.openEvent));
+  assert.doesNotMatch(
+    portalOperationLogAnnotations.map((item) => `${item.module}${item.target}`).join('\n'),
+    /详情/,
   );
 });
 
