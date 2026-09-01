@@ -9,6 +9,7 @@ export type RequirementKey =
   | 'qsbOverview'
   | 'openApiOptimization'
   | 'etlDataMonitoringOptimization'
+  | 'portalOperationLog'
   | 'messageCenter'
   | 'pushStrategyOptimization'
   | 'crmProvisioningAutomation';

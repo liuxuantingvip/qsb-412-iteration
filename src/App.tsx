@@ -130,6 +130,7 @@ const accountMenuIcons: Record<AccountMenuKey, ReactNode> = {
   连接器管理: <StreamlineMenuIcon name="link-chain" />,
   短信队列管理: <StreamlineMenuIcon name="mail-send-email-message" />,
   机器人设备管理: <StreamlineMenuIcon name="cyborg" />,
+  操作日志: <IconList />,
   'API Keys': <IconSafe />,
   'MCP 服务': <IconCloud />,
   回调服务: <IconRefresh />,
@@ -164,6 +165,7 @@ const getRequirementDefaultPortalState = (key: RequirementKey) => {
   if (key === 'qsbOverview') return { topTab: '电商取数宝', menuKey: '取数宝概览' };
   if (key === 'autoRetryOptimization') return { topTab: '电商取数宝', menuKey: '计划管理' };
   if (key === 'openApiOptimization') return { topTab: '开放平台', menuKey: 'API Keys' };
+  if (key === 'portalOperationLog') return { topTab: '个人中心', menuKey: '操作日志' };
   if (key === 'etlDataMonitoringOptimization') return { topTab: '电商取数宝', menuKey: '数据监控' };
   if (key === 'businessCustomParameterExperience') return { topTab: '电商取数宝', menuKey: '本店商品配置' };
   return { topTab: '电商取数宝', menuKey: '本店商品配置' };

@@ -13,10 +13,12 @@ test('defines the approved account navigation hierarchy', () => {
     '连接器管理',
     '短信队列管理',
     '机器人设备管理',
+    '操作日志',
   ]);
   assert.deepEqual(accountNavigation['开放平台'], ['API Keys', 'MCP 服务', '回调服务']);
   assert.equal(accountDefaultMenuKey['个人中心'], '账号设置');
   assert.equal(accountDefaultMenuKey['开放平台'], 'API Keys');
+  assert.equal(isAccountMenuKey('操作日志'), true);
   assert.equal(isAccountMenuKey('MCP 服务'), true);
 });
 

@@ -13,6 +13,7 @@ export const iterationMeta = {
 export const iterationRequirements: Array<{ key: RequirementKey; label: string }> = [
   { key: 'qsbOverview', label: '概览' },
   { key: 'etlDataMonitoringOptimization', label: '数据监控优化' },
+  { key: 'portalOperationLog', label: '门户操作日志' },
   { key: 'pushStrategyOptimization', label: '推送策略中心优化' },
   { key: 'messageCenter', label: '公告推送' },
   { key: 'crmProvisioningAutomation', label: 'CRM 自动化开通' },
