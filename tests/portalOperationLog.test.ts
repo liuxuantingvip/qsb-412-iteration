@@ -365,6 +365,10 @@ test('filter controls stay on one row and the page has no detail interaction', (
     new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
     'utf8',
   );
+  const styles = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.module.less', import.meta.url),
+    'utf8',
+  );
 
   for (const label of ['时间范围', '操作者', '功能模块', '操作类型', '凭证名称']) {
     assert.doesNotMatch(page, new RegExp(`<span>${label}<\\/span>`));
@@ -373,6 +377,14 @@ test('filter controls stay on one row and the page has no detail interaction', (
   assert.doesNotMatch(page, /<Drawer/);
   assert.doesNotMatch(page, /activeRecord|setActiveRecord/);
   assert.doesNotMatch(page, /onRow=/);
+  assert.match(
+    styles,
+    /\.sourceTabs :global\(\.arco-tabs-header-(?:nav|scroll|wrapper)\)[\s\S]*?padding-left:\s*0;/,
+  );
+  assert.match(
+    styles,
+    /\.sourceTabs :global\([\s\S]*?\.arco-tabs-header-nav-line\.arco-tabs-header-nav-horizontal[\s\S]*?\.arco-tabs-header-title:first-of-type[\s\S]*?margin-left:\s*0;/,
+  );
 });
 
 test('operation detail drawer and its styles are removed', () => {
