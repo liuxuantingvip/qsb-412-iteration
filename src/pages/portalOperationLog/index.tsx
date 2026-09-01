@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   Button,
   DatePicker,
@@ -19,9 +19,14 @@ import {
   buildOperationLogCsv,
   filterOperationLogs,
   getDateRangeError,
+  initialPortalOperationLogMockState,
   mockOperationLogs,
+  OPERATION_TYPES,
+  prependOperationLogRecordOnce,
+  reducePortalOperationLogMockState,
 } from './model';
 import type {
+  ExportMockOutcome,
   OperationLogRecord,
   OperationLogSource,
   OperationType,
@@ -30,7 +35,7 @@ import styles from './index.module.less';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
-const operationResultLabel = '操作' + '结果';
+const operationResultLabel = '操作结果';
 
 const sourceTabs = [
   { key: 'portal', label: '门户操作' },
@@ -39,6 +44,8 @@ const sourceTabs = [
 ] as const;
 
 const defaultDateRange: [string, string] = ['2026-08-26', '2026-09-01'];
+const EXPORT_MOCK_DELAY_MS = 600;
+const QUERY_RELOAD_DELAY_MS = 500;
 const sourceEmptyText: Record<OperationLogSource, string> = {
   portal: '暂无门户操作日志',
   api: '暂无 API 操作日志',
@@ -70,7 +77,15 @@ export default function PortalOperationLog() {
   const [source, setSource] = useState<OperationLogSource>('portal');
   const [dateRange, setDateRange] = useState<[string, string]>(defaultDateRange);
   const [filters, setFilters] = useState<PageFilters>({});
+  const [currentPage, setCurrentPage] = useState(1);
   const [activeRecord, setActiveRecord] = useState<OperationLogRecord | null>(null);
+  const [mockState, dispatchMock] = useReducer(
+    reducePortalOperationLogMockState,
+    initialPortalOperationLogMockState,
+  );
+  const exportLockRef = useRef(false);
+  const exportTimerRef = useRef<number>();
+  const queryTimerRef = useRef<number>();
 
   const sourceRecords = useMemo(
     () => records.filter((record) => record.tenantId === 'tenant-aa' && record.source === source),
@@ -88,8 +103,11 @@ export default function PortalOperationLog() {
     [sourceRecords],
   );
   const operationTypeOptions = useMemo(
-    () => uniqueOptions(sourceRecords.map((record) => record.operationType)),
-    [sourceRecords],
+    () => OPERATION_TYPES.map((operationType) => ({
+      label: operationType,
+      value: operationType,
+    })),
+    [],
   );
   const credentialOptions = useMemo(
     () => uniqueOptions(sourceRecords.map((record) => record.credentialName)),
@@ -135,7 +153,13 @@ export default function PortalOperationLog() {
   const changeSource = (nextSource: string) => {
     setSource(nextSource as OperationLogSource);
     setFilters((current) => ({ ...current, credentialName: undefined }));
+    setCurrentPage(1);
     setActiveRecord(null);
+  };
+
+  const updateFilter = <Key extends keyof PageFilters>(key: Key, value: PageFilters[Key]) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+    setCurrentPage(1);
   };
 
   const changeDateRange = (nextRange: string[] | null | undefined) => {
@@ -146,33 +170,84 @@ export default function PortalOperationLog() {
       return;
     }
     setDateRange([nextRange[0], nextRange[1]]);
+    setCurrentPage(1);
+  };
+
+  const simulateQueryFailure = () => {
+    if (queryTimerRef.current) window.clearTimeout(queryTimerRef.current);
+    dispatchMock({ type: 'query/fail' });
+  };
+
+  const reloadQuery = () => {
+    if (mockState.queryStatus !== 'failed') return;
+    dispatchMock({ type: 'query/reload' });
+    queryTimerRef.current = window.setTimeout(() => {
+      dispatchMock({ type: 'query/succeed' });
+      queryTimerRef.current = undefined;
+      Message.success('操作日志已重新加载');
+    }, QUERY_RELOAD_DELAY_MS);
   };
 
   const exportCurrentRecords = () => {
-    const csv = buildOperationLogCsv(filteredRecords);
-    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    const tabLabel = sourceTabs.find((tab) => tab.key === source)?.label || source;
-    anchor.href = url;
-    anchor.download = `操作日志-${tabLabel}-20260901.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    if (exportLockRef.current) return;
+    exportLockRef.current = true;
 
-    setRecords((current) => [{
-      id: `portal-export-${Date.now()}`,
-      tenantId: 'tenant-aa',
-      source: 'portal',
-      operatedAt: '2026-09-01 14:30:00',
-      operatorId: 'user-sensen',
-      operatorName: 'Sensen',
-      module: '操作日志',
-      operationType: '导出',
-      content: `导出${tabLabel} Tab 当前筛选结果`,
-      result: 'success',
-      ip: '10.18.2.16',
-    }, ...current]);
-    Message.success('操作日志已导出');
+    const attemptId = `portal-export-${Date.now()}`;
+    const expectedOutcome = mockState.nextExportOutcome;
+    const exportRecords = [...filteredRecords];
+    const tabLabel = sourceTabs.find((tab) => tab.key === source)?.label || source;
+    dispatchMock({ type: 'export/start' });
+
+    exportTimerRef.current = window.setTimeout(() => {
+      let actualOutcome: ExportMockOutcome = 'success';
+      let failureReason: string | undefined;
+
+      try {
+        if (expectedOutcome === 'failed') {
+          throw new Error('原型模拟：导出服务暂不可用');
+        }
+        const csv = buildOperationLogCsv(exportRecords);
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        try {
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = `操作日志-${tabLabel}-20260901.csv`;
+          anchor.click();
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      } catch (error) {
+        actualOutcome = 'failed';
+        failureReason = error instanceof Error ? error.message : '导出服务暂不可用';
+      }
+
+      const auditRecord: OperationLogRecord = {
+        id: attemptId,
+        tenantId: 'tenant-aa',
+        source: 'portal',
+        operatedAt: '2026-09-01 14:30:00',
+        operatorId: 'user-sensen',
+        operatorName: 'Sensen',
+        module: '操作日志',
+        operationType: '导出',
+        content: `导出${tabLabel} Tab 当前筛选结果（${exportRecords.length}条）`,
+        result: actualOutcome,
+        ip: '10.18.2.16',
+        ...(failureReason ? { failureReason } : {}),
+      };
+
+      setRecords((current) => prependOperationLogRecordOnce(current, auditRecord));
+      dispatchMock({ type: 'export/complete', outcome: actualOutcome });
+      exportLockRef.current = false;
+      exportTimerRef.current = undefined;
+
+      if (actualOutcome === 'success') {
+        Message.success('操作日志已导出');
+      } else {
+        Message.error('导出失败，可保留当前条件重试');
+      }
+    }, EXPORT_MOCK_DELAY_MS);
   };
 
   const detailAvailable = Boolean(
@@ -180,6 +255,12 @@ export default function PortalOperationLog() {
     || activeRecord?.requestSummary
     || activeRecord?.changes?.length,
   );
+
+  useEffect(() => () => {
+    if (exportTimerRef.current) window.clearTimeout(exportTimerRef.current);
+    if (queryTimerRef.current) window.clearTimeout(queryTimerRef.current);
+    exportLockRef.current = false;
+  }, []);
 
   useEffect(() => {
     const openDetail = () => {
@@ -200,14 +281,62 @@ export default function PortalOperationLog() {
             <Text className={styles.subtitle}>
               原型仅固定展示 tenant-aa 的 mock 数据，未接入真实鉴权与日志接口，不跨租户展示或导出。
             </Text>
+            <div className={styles.mockControls}>
+              <Text>原型评审场景</Text>
+              <Button
+                size="small"
+                status="danger"
+                disabled={mockState.queryStatus !== 'ready'}
+                onClick={simulateQueryFailure}
+              >
+                模拟查询失败
+              </Button>
+              <Select
+                size="small"
+                value={mockState.nextExportOutcome}
+                disabled={mockState.exportStatus === 'loading'}
+                options={[
+                  { label: '下次导出成功', value: 'success' },
+                  { label: '下次导出失败', value: 'failed' },
+                ]}
+                onChange={(outcome) => dispatchMock({
+                  type: 'export/set-next-outcome',
+                  outcome: outcome as ExportMockOutcome,
+                })}
+              />
+            </div>
           </div>
           <PortalOperationLogAnnotationMarker noteId="POL-6">
-            <Button type="primary" icon={<IconDownload />} onClick={exportCurrentRecords}>
-              导出
+            <Button
+              type="primary"
+              icon={<IconDownload />}
+              loading={mockState.exportStatus === 'loading'}
+              disabled={mockState.exportStatus === 'loading'}
+              onClick={exportCurrentRecords}
+            >
+              {mockState.exportStatus === 'loading' ? '导出中' : '导出'}
             </Button>
           </PortalOperationLogAnnotationMarker>
         </div>
       </PortalOperationLogAnnotationMarker>
+
+      {mockState.exportStatus === 'success' || mockState.exportStatus === 'failed' ? (
+        <div
+          className={mockState.exportStatus === 'success'
+            ? styles.exportStatusSuccess
+            : styles.exportStatusFailed}
+          role="status"
+        >
+          <span>
+            {mockState.exportStatus === 'success'
+              ? '导出成功：已按当前 Tab 和筛选条件生成文件并记录成功留痕。'
+              : '导出失败：已记录失败留痕，当前 Tab 和筛选条件已保留。'}
+          </span>
+          {mockState.exportStatus === 'failed' ? (
+            <Button size="mini" status="danger" onClick={exportCurrentRecords}>重试导出</Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <PortalOperationLogAnnotationMarker noteId="POL-2" layout="block">
         <div className={styles.sourceTabs}>
@@ -235,7 +364,7 @@ export default function PortalOperationLog() {
               options={operatorOptions}
               placeholder="全部操作者"
               value={filters.operatorId}
-              onChange={(operatorId) => setFilters((current) => ({ ...current, operatorId }))}
+              onChange={(operatorId) => updateFilter('operatorId', operatorId)}
             />
           </div>
           <div className={styles.filterItem}>
@@ -245,7 +374,7 @@ export default function PortalOperationLog() {
               options={moduleOptions}
               placeholder="全部模块"
               value={filters.module}
-              onChange={(module) => setFilters((current) => ({ ...current, module }))}
+              onChange={(module) => updateFilter('module', module)}
             />
           </div>
           <div className={styles.filterItem}>
@@ -255,10 +384,10 @@ export default function PortalOperationLog() {
               options={operationTypeOptions}
               placeholder="全部类型"
               value={filters.operationType}
-              onChange={(operationType) => setFilters((current) => ({
-                ...current,
-                operationType: operationType as OperationType | undefined,
-              }))}
+              onChange={(operationType) => updateFilter(
+                'operationType',
+                operationType as OperationType | undefined,
+              )}
             />
           </div>
           {source !== 'portal' ? (
@@ -269,7 +398,7 @@ export default function PortalOperationLog() {
                 options={credentialOptions}
                 placeholder="全部凭证"
                 value={filters.credentialName}
-                onChange={(credentialName) => setFilters((current) => ({ ...current, credentialName }))}
+                onChange={(credentialName) => updateFilter('credentialName', credentialName)}
               />
             </div>
           ) : null}
@@ -281,10 +410,26 @@ export default function PortalOperationLog() {
           <Table
             rowKey="id"
             columns={columns}
-            data={filteredRecords}
-            pagination={{ pageSize: 10, sizeCanChange: false }}
+            data={mockState.queryStatus === 'ready' ? filteredRecords : []}
+            loading={mockState.queryStatus === 'loading'}
+            pagination={{
+              current: currentPage,
+              pageSize: 10,
+              sizeCanChange: false,
+              onChange: (pageNumber) => setCurrentPage(pageNumber),
+            }}
             scroll={{ x: columns.reduce((sum, column) => sum + Number(column.width || 0), 0) }}
-            noDataElement={<Empty description={sourceEmptyText[source]} />}
+            noDataElement={mockState.queryStatus === 'failed' ? (
+              <div className={styles.queryFailedState}>
+                <Empty description="操作日志加载失败" />
+                <Button
+                  type="primary"
+                  onClick={reloadQuery}
+                >
+                  重新加载
+                </Button>
+              </div>
+            ) : <Empty description={sourceEmptyText[source]} />}
             onRow={(record) => ({
               className: styles.clickableRow,
               onClick: () => setActiveRecord(record),

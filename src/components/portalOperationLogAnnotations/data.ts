@@ -40,7 +40,7 @@ export const portalOperationLogAnnotations: RequirementAnnotation[] = [
     stateLabel: '状态与异常',
     stateItems: [
       { text: '切换 Tab 后使用该来源的查询结果；API、MCP 凭证被撤销或成员被删除后，历史日志仍保留操作发生时的成员与凭证名称、标识快照。' },
-      { text: '来源无法归属时不误放入任一 Tab，由服务端告警和排查。' },
+      { text: '来源无法归属时不进入任一 Tab，且不得误归属到其他成员或凭证。' },
     ],
     recoveryLabel: '恢复方式',
     recoveryItems: [
