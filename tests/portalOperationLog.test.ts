@@ -109,3 +109,31 @@ test('required date range cannot be cleared and safely ignores empty changes', (
     /<DatePicker\.RangePicker[\s\S]*?allowClear={false}[\s\S]*?onChange={changeDateRange}/,
   );
 });
+
+test('PRD covers the approved portal operation log review scope', () => {
+  const prd = readFileSync(
+    new URL('../src/pages/portalOperationLogPrd/index.tsx', import.meta.url),
+    'utf8',
+  );
+
+  for (const text of [
+    '背景', '目标', '需求范围', '用户故事', '核心流程', '权限与租户隔离',
+    '字段说明', '保留与查询规则', '异常处理', '本期不做', '验收清单',
+    '180 天', '近 7 天', '90 天', '门户操作', 'API', 'MCP',
+  ]) {
+    assert.match(prd, new RegExp(text));
+  }
+  assert.match(prd, /不记录浏览行为/);
+  assert.match(prd, /系统自动行为不展示/);
+  assert.match(prd, /操作内容和操作结果不作为筛选条件/);
+});
+
+test('PRD branch mounts the portal operation log PRD explicitly', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.match(app, /import PortalOperationLogPrd from '@\/pages\/portalOperationLogPrd';/);
+  assert.match(
+    app,
+    /if \(activeRequirement === 'portalOperationLog'\) return <PortalOperationLogPrd \/>;/,
+  );
+});

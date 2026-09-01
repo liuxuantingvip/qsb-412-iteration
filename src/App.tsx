@@ -83,6 +83,7 @@ import OpenApiOptimization from '@/pages/openApiOptimization';
 import OpenApiOptimizationPrd from '@/pages/openApiOptimizationPrd';
 import ParameterManagement from '@/pages/parameterManagement';
 import PortalOperationLog from '@/pages/portalOperationLog';
+import PortalOperationLogPrd from '@/pages/portalOperationLogPrd';
 import PushStrategyCenter from '@/pages/pushStrategyCenter';
 import type { ParameterMenuKey } from '@/pages/parameterManagement';
 import QsbOverview from '@/pages/qsbOverview';
@@ -408,6 +409,7 @@ export default function App() {
       return <div className="portal-empty-page"><Empty description="需求待拉齐" /></div>;
     }
     if (activeRequirement === 'messageCenter') return <MessageCenterPrd />;
+    if (activeRequirement === 'portalOperationLog') return <PortalOperationLogPrd />;
     if (activeRequirement === 'cloudResourceAutomation') return <CloudResourceAutomationPrd />;
     if (activeRequirement === 'qsbOverview') return <QsbOverviewPrd />;
     if (activeRequirement === 'autoRetryOptimization') return <AutoRetryOptimizationPrd />;
