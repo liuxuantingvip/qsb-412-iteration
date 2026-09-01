@@ -179,8 +179,8 @@ const CSV_COLUMNS: ReadonlyArray<{
   { header: '凭证名称', key: 'credentialName' },
 ];
 
-const COOKIE_HEADER_PATTERN = /\b(?:set-cookie|cookie)\s*[:=]\s*[^\r\n]*/giu;
-const SENSITIVE_ASSIGNMENT_PATTERN = /(?:\b(?:access[_-]?token|refresh[_-]?token|token|api[_-]?key|apikey|password|passwd|secret|client[_-]?secret)\b|密码|密钥)\s*[:=]\s*[^\r\n]*/giu;
+const COOKIE_HEADER_PATTERN = /(?:["'](?:set[\s_-]*cookie|cookie)["']|\b(?:set[\s_-]*cookie|cookie)\b)\s*[:=]\s*[^\r\n]*/giu;
+const SENSITIVE_ASSIGNMENT_PATTERN = /(?:["'](?:access[\s_-]*token|refresh[\s_-]*token|token|api[\s_-]*key|password|passwd|secret|client[\s_-]*secret)["']|\b(?:access[\s_-]*token|refresh[\s_-]*token|token|api[\s_-]*key|password|passwd|secret|client[\s_-]*secret)\b|密码|密钥)\s*[:=]\s*[^\r\n]*/giu;
 const BEARER_PATTERN = /\bbearer\s+[^\r\n]*/giu;
 const RAW_SECRET_PATTERN = /\b(?:qsb_sk_|sk_live_|sk_test_)[a-z0-9._-]+\b/giu;
 

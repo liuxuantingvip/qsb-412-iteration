@@ -187,6 +187,37 @@ test('csv sanitizes every exported field, neutralizes formulas and quotes newlin
   assert.match(csv, /"'=HYPERLINK\(""https:\/\/evil\.example""\)\n\[已脱敏\]"/);
 });
 
+test('csv redacts spaced API keys and quoted JSON credentials', () => {
+  const maliciousRecord: OperationLogRecord = {
+    id: 'quoted-json-secret-export-row',
+    tenantId: 'tenant-aa',
+    source: 'api',
+    operatedAt: '2026-09-01 12:00:00',
+    operatorId: 'user-attacker',
+    operatorName: "{'password':'DUMMY_SINGLE_PASSWORD_VALUE'}",
+    module: 'API Key: DUMMY_API_VALUE',
+    operationType: '导出',
+    content: '{"password":"DUMMY_PASSWORD_VALUE"}',
+    result: 'success',
+    ip: '10.18.2.99',
+    credentialId: 'credential-malicious-json',
+    credentialName: '{"cookie":"DUMMY_COOKIE_VALUE"}\n{\'cookie\':\'DUMMY_SINGLE_COOKIE_VALUE\'}',
+  };
+
+  const safeRow = toSafeOperationLogCsvRow(maliciousRecord);
+  assert.doesNotMatch(
+    Object.values(safeRow).join('\n'),
+    /DUMMY_(?:API|PASSWORD|COOKIE|SINGLE_PASSWORD|SINGLE_COOKIE)_VALUE/,
+  );
+
+  const csv = buildOperationLogCsv([maliciousRecord]);
+  assert.doesNotMatch(
+    csv,
+    /DUMMY_(?:API|PASSWORD|COOKIE|SINGLE_PASSWORD|SINGLE_COOKIE)_VALUE/,
+  );
+  assert.equal(csv.split('\n', 1)[0].split(',').length, 8);
+});
+
 test('mock only includes member-triggered business actions', () => {
   assert.equal(mockOperationLogs.some(item => item.source === ('system' as never)), false);
   assert.equal(
