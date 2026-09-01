@@ -41,11 +41,12 @@ import logo from '@/assets/images/qsb-logo.svg';
 import userAvatar from '@/assets/images/user-avatar.png';
 import {
   accountDefaultMenuKey,
-  accountNavigation,
+  getVisibleAccountMenuKeys,
   isAccountArea,
   isAccountMenuKey,
+  isRequirementAvailableToTenantRole,
 } from '@/accountNavigation';
-import type { AccountMenuKey } from '@/accountNavigation';
+import type { AccountMenuKey, TenantRole } from '@/accountNavigation';
 import { autoRetryAnnotations, AutoRetryAnnotationDrawer } from '@/components/autoRetryAnnotations';
 import {
   etlDataMonitoringAnnotations,
@@ -96,6 +97,7 @@ const { Text } = Typography;
 
 type ProductTopTab = '电商取数宝' | '跨境取数宝';
 type RequirementView = 'prd' | 'prototype';
+const currentTenantRole: TenantRole = 'tenantAdmin';
 
 const streamlineMenuIcons = {
   'graph-dot': graphDotIcon,
@@ -338,8 +340,10 @@ const initialAnnouncementMessages: AnnouncementMessageItem[] = [
 ];
 
 export default function App() {
-  const initialRequirement = isRequirementKey(new URLSearchParams(window.location.search).get('requirement'))
-    ? new URLSearchParams(window.location.search).get('requirement') as RequirementKey
+  const requestedRequirement = new URLSearchParams(window.location.search).get('requirement');
+  const initialRequirement = isRequirementKey(requestedRequirement)
+    && isRequirementAvailableToTenantRole(currentTenantRole, requestedRequirement)
+    ? requestedRequirement
     : iterationMeta.defaultRequirement;
   const initialView = isRequirementView(new URLSearchParams(window.location.search).get('tab'))
     ? new URLSearchParams(window.location.search).get('tab') as RequirementView
@@ -374,6 +378,7 @@ export default function App() {
   };
 
   const activateRequirement = (nextRequirement: RequirementKey, nextView = requirementView) => {
+    if (!isRequirementAvailableToTenantRole(currentTenantRole, nextRequirement)) return;
     const nextPortalState = getRequirementDefaultPortalState(nextRequirement);
     setActiveRequirement(nextRequirement);
     setRequirementView(nextView);
@@ -795,7 +800,7 @@ export default function App() {
                     onClickMenuItem={handleSideMenuClick}
                   >
                     {isAccountArea(selectedTopTab) ? (
-                      accountNavigation[selectedTopTab].map((item) => (
+                      getVisibleAccountMenuKeys(selectedTopTab, currentTenantRole).map((item) => (
                         <Menu.Item key={item}>
                           {accountMenuIcons[item]}
                           <span className="portal-menu-label">{item}</span>

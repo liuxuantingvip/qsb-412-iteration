@@ -4,7 +4,9 @@ import test from 'node:test';
 import {
   accountDefaultMenuKey,
   accountNavigation,
+  getVisibleAccountMenuKeys,
   isAccountMenuKey,
+  isRequirementAvailableToTenantRole,
 } from '../src/accountNavigation.ts';
 
 test('defines the approved account navigation hierarchy', () => {
@@ -20,6 +22,25 @@ test('defines the approved account navigation hierarchy', () => {
   assert.equal(accountDefaultMenuKey['开放平台'], 'API Keys');
   assert.equal(isAccountMenuKey('操作日志'), true);
   assert.equal(isAccountMenuKey('MCP 服务'), true);
+});
+
+test('limits operation log to tenant administrators in menu and direct requirement access', () => {
+  assert.deepEqual(getVisibleAccountMenuKeys('个人中心', 'tenantAdmin'), [
+    '账号设置',
+    '连接器管理',
+    '短信队列管理',
+    '机器人设备管理',
+    '操作日志',
+  ]);
+  assert.deepEqual(getVisibleAccountMenuKeys('个人中心', 'member'), [
+    '账号设置',
+    '连接器管理',
+    '短信队列管理',
+    '机器人设备管理',
+  ]);
+  assert.equal(isRequirementAvailableToTenantRole('tenantAdmin', 'portalOperationLog'), true);
+  assert.equal(isRequirementAvailableToTenantRole('member', 'portalOperationLog'), false);
+  assert.equal(isRequirementAvailableToTenantRole('member', 'qsbOverview'), true);
 });
 
 test('uses the approved 16px flat icons and account settings interactions', () => {

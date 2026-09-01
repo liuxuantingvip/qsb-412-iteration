@@ -1,3 +1,5 @@
+import type { RequirementKey } from '@/context/RequirementContext';
+
 export const accountNavigation = {
   个人中心: ['账号设置', '连接器管理', '短信队列管理', '机器人设备管理', '操作日志'],
   开放平台: ['API Keys', 'MCP 服务', '回调服务'],
@@ -5,6 +7,7 @@ export const accountNavigation = {
 
 export type AccountArea = keyof typeof accountNavigation;
 export type AccountMenuKey = typeof accountNavigation[AccountArea][number];
+export type TenantRole = 'tenantAdmin' | 'member';
 
 export const accountDefaultMenuKey: Record<AccountArea, AccountMenuKey> = {
   个人中心: '账号设置',
@@ -17,4 +20,20 @@ export const isAccountArea = (value: string): value is AccountArea => value in a
 
 export const isAccountMenuKey = (value: string): value is AccountMenuKey => (
   accountMenuKeys.includes(value as AccountMenuKey)
+);
+
+export const getVisibleAccountMenuKeys = (
+  area: AccountArea,
+  tenantRole: TenantRole,
+): AccountMenuKey[] => (
+  tenantRole === 'tenantAdmin'
+    ? [...accountNavigation[area]]
+    : accountNavigation[area].filter((key) => key !== '操作日志')
+);
+
+export const isRequirementAvailableToTenantRole = (
+  tenantRole: TenantRole,
+  requirement: RequirementKey,
+) => (
+  tenantRole === 'tenantAdmin' || requirement !== 'portalOperationLog'
 );
