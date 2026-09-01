@@ -372,8 +372,28 @@ test('filter controls stay on one row and detail basics use the approved spaciou
   assert.match(page, /aria-label="时间范围"/);
   assert.match(page, /width=\{720\}/);
   assert.match(page, /className={styles\.basicInfoGrid}/);
-  assert.match(page, /className={styles\.basicInfoItemWide}/);
+  assert.doesNotMatch(page, /className={styles\.basicInfoItemWide}/);
   assert.doesNotMatch(page, /<Descriptions/);
+});
+
+test('detail drawer prioritizes the action and only renders meaningful audit details', () => {
+  const page = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
+    'utf8',
+  );
+  const styles = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.module.less', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(page, /className={styles\.operationSummary}/);
+  assert.match(
+    page,
+    /{detailAvailable \? \(\s*<div className={styles\.detailSection}>/,
+  );
+  assert.doesNotMatch(page, /详情暂不可用/);
+  assert.doesNotMatch(styles, /\.basicInfoItem[\s\S]{0,300}background:/);
+  assert.match(styles, /\.changeHeader/);
 });
 
 test('POL-4 marker owns the remaining flex height and its table fills the marker', () => {

@@ -427,6 +427,14 @@ export default function PortalOperationLog() {
           <div className={styles.drawerContent}>
             {activeRecord ? (
               <>
+                <div className={styles.operationSummary}>
+                  <div className={styles.operationSummaryMeta}>
+                    <strong>{activeRecord.operatorName}</strong>
+                    <span>在{activeRecord.module}中</span>
+                  </div>
+                  <p>{activeRecord.content}</p>
+                </div>
+
                 <div className={styles.basicInfoSection}>
                   <h3>基础信息</h3>
                   <div className={styles.basicInfoGrid}>
@@ -464,34 +472,44 @@ export default function PortalOperationLog() {
                         </span>
                       </div>
                     ) : null}
-                    <div className={styles.basicInfoItemWide}>
-                      <span className={styles.basicInfoLabel}>操作内容</span>
-                      <span className={styles.basicInfoValue}>{activeRecord.content}</span>
-                    </div>
                   </div>
                 </div>
 
-                <div className={styles.detailSection}>
-                  <h3>操作详情</h3>
-                  {detailAvailable ? (
+                {detailAvailable ? (
+                  <div className={styles.detailSection}>
+                    <h3>操作详情</h3>
                     <div className={styles.detailList}>
                       {activeRecord.failureReason ? (
-                        <div><span>失败原因</span><strong>{activeRecord.failureReason}</strong></div>
+                        <div className={styles.detailItem}>
+                          <span>失败原因</span>
+                          <strong>{activeRecord.failureReason}</strong>
+                        </div>
                       ) : null}
                       {activeRecord.requestSummary ? (
-                        <div><span>脱敏请求摘要</span><strong>{activeRecord.requestSummary}</strong></div>
-                      ) : null}
-                      {activeRecord.changes?.map((change) => (
-                        <div className={styles.changeRow} key={change.field}>
-                          <span>{change.field}</span>
-                          <strong>{change.before}</strong>
-                          <i>→</i>
-                          <strong>{change.after}</strong>
+                        <div className={styles.detailItem}>
+                          <span>脱敏请求摘要</span>
+                          <strong>{activeRecord.requestSummary}</strong>
                         </div>
-                      ))}
+                      ) : null}
+                      {activeRecord.changes?.length ? (
+                        <div className={styles.changeTable}>
+                          <div className={styles.changeHeader}>
+                            <span>变更字段</span>
+                            <span>变更前</span>
+                            <span>变更后</span>
+                          </div>
+                          {activeRecord.changes.map((change) => (
+                            <div className={styles.changeRow} key={change.field}>
+                              <span>{change.field}</span>
+                              <strong>{change.before}</strong>
+                              <strong>{change.after}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : <Empty description="详情暂不可用" />}
-                </div>
+                  </div>
+                ) : null}
               </>
             ) : null}
           </div>
