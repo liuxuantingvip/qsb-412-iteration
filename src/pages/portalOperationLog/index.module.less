@@ -1,0 +1,136 @@
+.page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.title:global(.arco-typography) {
+  margin: 0 0 4px;
+  color: var(--color-text-1);
+}
+
+.subtitle:global(.arco-typography) {
+  color: var(--color-text-3);
+  font-size: 13px;
+}
+
+.sourceTabs {
+  border-bottom: 1px solid var(--color-border-2);
+}
+
+.sourceTabs :global(.arco-tabs-header) {
+  margin-bottom: 0;
+}
+
+.filterBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filterItem {
+  min-width: 148px;
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.filterItem:first-child {
+  min-width: 250px;
+}
+
+.filterItem :global(.arco-select),
+.filterItem :global(.arco-picker) {
+  width: 100%;
+}
+
+.tableWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--qsb-radius-8);
+  background: var(--color-bg-2);
+}
+
+.tableWrap :global(.arco-table),
+.tableWrap :global(.arco-spin),
+.tableWrap :global(.arco-spin-children) {
+  height: 100%;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover :global(.arco-table-td) {
+  background: var(--color-fill-1);
+}
+
+.drawerContent {
+  display: grid;
+  gap: 24px;
+}
+
+.detailSection {
+  display: grid;
+  gap: 12px;
+}
+
+.detailSection h3 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: 16px;
+}
+
+.detailList {
+  display: grid;
+  gap: 12px;
+}
+
+.detailList > div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: var(--qsb-radius-8);
+  background: var(--color-fill-1);
+}
+
+.detailList span {
+  color: var(--color-text-3);
+}
+
+.detailList strong {
+  color: var(--color-text-1);
+  font-weight: 400;
+}
+
+.detailList > .changeRow {
+  grid-template-columns: 112px minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.changeRow i {
+  color: var(--color-text-3);
+  font-style: normal;
+}
+
+@media (max-width: 1180px) {
+  .filterItem {
+    flex: 1 1 180px;
+  }
+
+  .filterItem:first-child {
+    flex-basis: 250px;
+  }
+}

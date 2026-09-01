@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -62,4 +63,30 @@ test('mock only includes member-triggered business actions', () => {
     mockOperationLogs.some(item => ['浏览', '搜索', '筛选'].includes(item.operationType)),
     false,
   );
+});
+
+test('operation log page exposes the three source tabs and approved filters', () => {
+  const page = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(page, /门户操作/);
+  assert.match(page, /API/);
+  assert.match(page, /MCP/);
+  assert.match(page, /时间范围/);
+  assert.match(page, /操作者/);
+  assert.match(page, /功能模块/);
+  assert.match(page, /操作类型/);
+  assert.doesNotMatch(page, /placeholder="搜索操作内容"|操作结果.*Select/s);
+  for (const id of ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6']) {
+    assert.match(page, new RegExp(id));
+  }
+});
+
+test('account area mounts the operation log page explicitly', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.match(app, /import PortalOperationLog from '@\/pages\/portalOperationLog';/);
+  assert.match(app, /selectedMenuKey === '操作日志'[\s\S]*?<PortalOperationLog \/>/);
 });

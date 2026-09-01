@@ -82,6 +82,7 @@ import MessageCenterPrd from '@/pages/messageCenterPrd';
 import OpenApiOptimization from '@/pages/openApiOptimization';
 import OpenApiOptimizationPrd from '@/pages/openApiOptimizationPrd';
 import ParameterManagement from '@/pages/parameterManagement';
+import PortalOperationLog from '@/pages/portalOperationLog';
 import PushStrategyCenter from '@/pages/pushStrategyCenter';
 import type { ParameterMenuKey } from '@/pages/parameterManagement';
 import QsbOverview from '@/pages/qsbOverview';
@@ -571,13 +572,11 @@ export default function App() {
   ) : isParameterMenuKey(selectedMenuKey) ? (
     <ParameterManagement menuKey={selectedMenuKey} />
   ) : <div className="portal-empty-page"><Empty description="暂无数据" /></div>;
+  const accountContent = selectedMenuKey === '操作日志'
+    ? <PortalOperationLog />
+    : <OpenApiOptimization activeKey={selectedMenuKey} onActiveKeyChange={setSelectedMenuKey} />;
   const content = isAccountArea(selectedTopTab)
-    ? (
-      <OpenApiOptimization
-        activeKey={selectedMenuKey}
-        onActiveKeyChange={setSelectedMenuKey}
-      />
-    )
+    ? accountContent
     : selectedTopTab === '后台管理'
       ? backendContent
       : isProductTopTab(selectedTopTab)
