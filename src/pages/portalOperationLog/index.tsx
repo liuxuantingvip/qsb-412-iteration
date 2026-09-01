@@ -137,8 +137,8 @@ export default function PortalOperationLog() {
     setActiveRecord(null);
   };
 
-  const changeDateRange = (nextRange: string[]) => {
-    if (nextRange.length !== 2) return;
+  const changeDateRange = (nextRange: string[] | null | undefined) => {
+    if (!nextRange || nextRange.length !== 2) return;
     const error = getDateRangeError(nextRange[0], nextRange[1]);
     if (error) {
       Message.warning('单次查询时间范围不能超过 90 天');
@@ -206,6 +206,7 @@ export default function PortalOperationLog() {
         <div className={styles.filterItem}>
           <span>时间范围</span>
           <DatePicker.RangePicker
+            allowClear={false}
             format="YYYY-MM-DD"
             value={dateRange}
             onChange={changeDateRange}

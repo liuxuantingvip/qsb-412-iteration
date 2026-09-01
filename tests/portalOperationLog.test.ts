@@ -88,5 +88,24 @@ test('account area mounts the operation log page explicitly', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
   assert.match(app, /import PortalOperationLog from '@\/pages\/portalOperationLog';/);
-  assert.match(app, /selectedMenuKey === '操作日志'[\s\S]*?<PortalOperationLog \/>/);
+  assert.match(
+    app,
+    /style={{ display: selectedMenuKey === '操作日志' \? 'none' : 'contents' }}[\s\S]*?<OpenApiOptimization[\s\S]*?<\/div>[\s\S]*?{selectedMenuKey === '操作日志' \? <PortalOperationLog \/> : null}/,
+  );
+});
+
+test('required date range cannot be cleared and safely ignores empty changes', () => {
+  const page = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    page,
+    /const changeDateRange = \(nextRange: string\[\] \| null \| undefined\) => {[\s\S]*?if \(!nextRange \|\| nextRange\.length !== 2\) return;/,
+  );
+  assert.match(
+    page,
+    /<DatePicker\.RangePicker[\s\S]*?allowClear={false}[\s\S]*?onChange={changeDateRange}/,
+  );
 });

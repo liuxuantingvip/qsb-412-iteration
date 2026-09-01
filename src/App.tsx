@@ -572,9 +572,14 @@ export default function App() {
   ) : isParameterMenuKey(selectedMenuKey) ? (
     <ParameterManagement menuKey={selectedMenuKey} />
   ) : <div className="portal-empty-page"><Empty description="暂无数据" /></div>;
-  const accountContent = selectedMenuKey === '操作日志'
-    ? <PortalOperationLog />
-    : <OpenApiOptimization activeKey={selectedMenuKey} onActiveKeyChange={setSelectedMenuKey} />;
+  const accountContent = (
+    <>
+      <div style={{ display: selectedMenuKey === '操作日志' ? 'none' : 'contents' }}>
+        <OpenApiOptimization activeKey={selectedMenuKey} onActiveKeyChange={setSelectedMenuKey} />
+      </div>
+      {selectedMenuKey === '操作日志' ? <PortalOperationLog /> : null}
+    </>
+  );
   const content = isAccountArea(selectedTopTab)
     ? accountContent
     : selectedTopTab === '后台管理'
