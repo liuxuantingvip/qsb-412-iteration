@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   DatePicker,
@@ -14,6 +14,7 @@ import {
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table';
 import { IconDownload } from '@arco-design/web-react/icon';
+import { PortalOperationLogAnnotationMarker } from '@/components/portalOperationLogAnnotations';
 import {
   buildOperationLogCsv,
   filterOperationLogs,
@@ -180,99 +181,117 @@ export default function PortalOperationLog() {
     || activeRecord?.changes?.length,
   );
 
+  useEffect(() => {
+    const openDetail = () => {
+      setActiveRecord(records.find((record) => (
+        record.failureReason || record.requestSummary || record.changes?.length
+      )) || records[0] || null);
+    };
+    window.addEventListener('portal-operation-log:open-detail', openDetail);
+    return () => window.removeEventListener('portal-operation-log:open-detail', openDetail);
+  }, [records]);
+
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader} data-note-id="POL-1">
-        <div>
-          <Title className={styles.title} heading={5}>操作日志</Title>
-          <Text className={styles.subtitle}>
-            原型仅固定展示 tenant-aa 的 mock 数据，未接入真实鉴权与日志接口，不跨租户展示或导出。
-          </Text>
+      <PortalOperationLogAnnotationMarker noteId="POL-1" layout="block">
+        <div className={styles.pageHeader}>
+          <div>
+            <Title className={styles.title} heading={5}>操作日志</Title>
+            <Text className={styles.subtitle}>
+              原型仅固定展示 tenant-aa 的 mock 数据，未接入真实鉴权与日志接口，不跨租户展示或导出。
+            </Text>
+          </div>
+          <PortalOperationLogAnnotationMarker noteId="POL-6">
+            <Button type="primary" icon={<IconDownload />} onClick={exportCurrentRecords}>
+              导出
+            </Button>
+          </PortalOperationLogAnnotationMarker>
         </div>
-        <div data-note-id="POL-5">
-          <Button type="primary" icon={<IconDownload />} onClick={exportCurrentRecords}>
-            导出
-          </Button>
-        </div>
-      </div>
+      </PortalOperationLogAnnotationMarker>
 
-      <div className={styles.sourceTabs} data-note-id="POL-2">
-        <Tabs activeTab={source} onChange={changeSource}>
-          {sourceTabs.map((tab) => <TabPane key={tab.key} title={tab.label} />)}
-        </Tabs>
-      </div>
+      <PortalOperationLogAnnotationMarker noteId="POL-2" layout="block">
+        <div className={styles.sourceTabs}>
+          <Tabs activeTab={source} onChange={changeSource}>
+            {sourceTabs.map((tab) => <TabPane key={tab.key} title={tab.label} />)}
+          </Tabs>
+        </div>
+      </PortalOperationLogAnnotationMarker>
 
-      <div className={styles.filterBar} data-note-id="POL-3">
-        <div className={styles.filterItem}>
-          <span>时间范围</span>
-          <DatePicker.RangePicker
-            allowClear={false}
-            format="YYYY-MM-DD"
-            value={dateRange}
-            onChange={changeDateRange}
-          />
-        </div>
-        <div className={styles.filterItem}>
-          <span>操作者</span>
-          <Select
-            allowClear
-            options={operatorOptions}
-            placeholder="全部操作者"
-            value={filters.operatorId}
-            onChange={(operatorId) => setFilters((current) => ({ ...current, operatorId }))}
-          />
-        </div>
-        <div className={styles.filterItem}>
-          <span>功能模块</span>
-          <Select
-            allowClear
-            options={moduleOptions}
-            placeholder="全部模块"
-            value={filters.module}
-            onChange={(module) => setFilters((current) => ({ ...current, module }))}
-          />
-        </div>
-        <div className={styles.filterItem}>
-          <span>操作类型</span>
-          <Select
-            allowClear
-            options={operationTypeOptions}
-            placeholder="全部类型"
-            value={filters.operationType}
-            onChange={(operationType) => setFilters((current) => ({
-              ...current,
-              operationType: operationType as OperationType | undefined,
-            }))}
-          />
-        </div>
-        {source !== 'portal' ? (
+      <PortalOperationLogAnnotationMarker noteId="POL-3" layout="block">
+        <div className={styles.filterBar}>
           <div className={styles.filterItem}>
-            <span>凭证名称</span>
-            <Select
-              allowClear
-              options={credentialOptions}
-              placeholder="全部凭证"
-              value={filters.credentialName}
-              onChange={(credentialName) => setFilters((current) => ({ ...current, credentialName }))}
+            <span>时间范围</span>
+            <DatePicker.RangePicker
+              allowClear={false}
+              format="YYYY-MM-DD"
+              value={dateRange}
+              onChange={changeDateRange}
             />
           </div>
-        ) : null}
-      </div>
+          <div className={styles.filterItem}>
+            <span>操作者</span>
+            <Select
+              allowClear
+              options={operatorOptions}
+              placeholder="全部操作者"
+              value={filters.operatorId}
+              onChange={(operatorId) => setFilters((current) => ({ ...current, operatorId }))}
+            />
+          </div>
+          <div className={styles.filterItem}>
+            <span>功能模块</span>
+            <Select
+              allowClear
+              options={moduleOptions}
+              placeholder="全部模块"
+              value={filters.module}
+              onChange={(module) => setFilters((current) => ({ ...current, module }))}
+            />
+          </div>
+          <div className={styles.filterItem}>
+            <span>操作类型</span>
+            <Select
+              allowClear
+              options={operationTypeOptions}
+              placeholder="全部类型"
+              value={filters.operationType}
+              onChange={(operationType) => setFilters((current) => ({
+                ...current,
+                operationType: operationType as OperationType | undefined,
+              }))}
+            />
+          </div>
+          {source !== 'portal' ? (
+            <div className={styles.filterItem}>
+              <span>凭证名称</span>
+              <Select
+                allowClear
+                options={credentialOptions}
+                placeholder="全部凭证"
+                value={filters.credentialName}
+                onChange={(credentialName) => setFilters((current) => ({ ...current, credentialName }))}
+              />
+            </div>
+          ) : null}
+        </div>
+      </PortalOperationLogAnnotationMarker>
 
-      <div className={styles.tableWrap} data-note-id="POL-4">
-        <Table
-          rowKey="id"
-          columns={columns}
-          data={filteredRecords}
-          pagination={{ pageSize: 10, sizeCanChange: false }}
-          scroll={{ x: columns.reduce((sum, column) => sum + Number(column.width || 0), 0) }}
-          noDataElement={<Empty description={sourceEmptyText[source]} />}
-          onRow={(record) => ({
-            className: styles.clickableRow,
-            onClick: () => setActiveRecord(record),
-          })}
-        />
-      </div>
+      <PortalOperationLogAnnotationMarker noteId="POL-4" layout="block">
+        <div className={styles.tableWrap}>
+          <Table
+            rowKey="id"
+            columns={columns}
+            data={filteredRecords}
+            pagination={{ pageSize: 10, sizeCanChange: false }}
+            scroll={{ x: columns.reduce((sum, column) => sum + Number(column.width || 0), 0) }}
+            noDataElement={<Empty description={sourceEmptyText[source]} />}
+            onRow={(record) => ({
+              className: styles.clickableRow,
+              onClick: () => setActiveRecord(record),
+            })}
+          />
+        </div>
+      </PortalOperationLogAnnotationMarker>
 
       <Drawer
         width={640}
@@ -281,9 +300,10 @@ export default function PortalOperationLog() {
         footer={null}
         onCancel={() => setActiveRecord(null)}
       >
-        <div className={styles.drawerContent} data-note-id="POL-6">
-          {activeRecord ? (
-            <>
+        <PortalOperationLogAnnotationMarker noteId="POL-5" layout="block">
+          <div className={styles.drawerContent}>
+            {activeRecord ? (
+              <>
               <Descriptions
                 border
                 column={2}
@@ -325,9 +345,10 @@ export default function PortalOperationLog() {
                   </div>
                 ) : <Empty description="详情暂不可用" />}
               </div>
-            </>
-          ) : null}
-        </div>
+              </>
+            ) : null}
+          </div>
+        </PortalOperationLogAnnotationMarker>
       </Drawer>
     </div>
   );

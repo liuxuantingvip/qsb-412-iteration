@@ -8,6 +8,28 @@ import {
   getDateRangeError,
   mockOperationLogs,
 } from '../src/pages/portalOperationLog/model.ts';
+import { portalOperationLogAnnotations } from '../src/components/portalOperationLogAnnotations/data.ts';
+
+test('operation log annotations keep the approved order and account navigation target', () => {
+  assert.deepEqual(portalOperationLogAnnotations.map((item) => item.noteId), [
+    'POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6',
+  ]);
+  assert.ok(portalOperationLogAnnotations.every((item) => item.topTab === '个人中心'));
+  assert.ok(portalOperationLogAnnotations.every((item) => item.menuKey === '操作日志'));
+});
+
+test('operation log annotations are wired into the active set and dedicated drawer', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.match(
+    app,
+    /activeRequirement === 'portalOperationLog'[\s\S]*?\? portalOperationLogAnnotations/,
+  );
+  assert.match(
+    app,
+    /activeRequirement === 'portalOperationLog'[\s\S]*?<PortalOperationLogAnnotationDrawer/,
+  );
+});
 
 test('filters by tenant, source, operator, module, type and credential', () => {
   const otherTenantRecord = {

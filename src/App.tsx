@@ -53,6 +53,10 @@ import {
   EtlDataMonitoringAnnotationDrawer,
 } from '@/components/etlDataMonitoringAnnotations';
 import { messageCenterAnnotations, MessageCenterAnnotationDrawer, MessageCenterAnnotationMarker } from '@/components/messageCenterAnnotations';
+import {
+  portalOperationLogAnnotations,
+  PortalOperationLogAnnotationDrawer,
+} from '@/components/portalOperationLogAnnotations';
 import type { RequirementAnnotation } from '@/components/requirementAnnotations';
 import {
   getUnreadMessageCount,
@@ -370,7 +374,9 @@ export default function App() {
       ? autoRetryAnnotations
       : activeRequirement === 'etlDataMonitoringOptimization'
         ? etlDataMonitoringAnnotations
-        : [];
+        : activeRequirement === 'portalOperationLog'
+          ? portalOperationLogAnnotations
+          : [];
 
   const updateRequirementUrl = (nextRequirement: RequirementKey, nextView: RequirementView) => {
     const params = new URLSearchParams(window.location.search);
@@ -929,6 +935,12 @@ export default function App() {
               />
             ) : activeRequirement === 'etlDataMonitoringOptimization' ? (
               <EtlDataMonitoringAnnotationDrawer
+                visible={annotationDrawerOpen}
+                onClose={() => setAnnotationDrawerOpen(false)}
+                onLocate={handleLocateAnnotation}
+              />
+            ) : activeRequirement === 'portalOperationLog' ? (
+              <PortalOperationLogAnnotationDrawer
                 visible={annotationDrawerOpen}
                 onClose={() => setAnnotationDrawerOpen(false)}
                 onLocate={handleLocateAnnotation}
