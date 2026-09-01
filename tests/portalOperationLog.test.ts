@@ -32,18 +32,13 @@ test('operation log annotations keep the approved order and account navigation t
   assert.doesNotMatch(sourceStateText, /服务端告警/);
 });
 
-test('portal marker renders each annotation number from the approved mapping', () => {
+test('portal markers keep locate targets without rendering visible page numbers', () => {
   const markerAdapter = readFileSync(
     new URL('../src/components/portalOperationLogAnnotations/index.tsx', import.meta.url),
     'utf8',
   );
-  const numbers = ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6'].map((noteId) => (
-    portalOperationLogAnnotations.find((item) => item.noteId === noteId)?.number
-  ));
-
-  assert.deepEqual(numbers, ['1', '2', '3', '4', '5', '6']);
-  assert.equal(new Set(numbers).size, 6);
-  assert.match(markerAdapter, /{annotation\.number}/);
+  assert.match(markerAdapter, /<RequirementAnnotationMarker/);
+  assert.doesNotMatch(markerAdapter, /numberAnchor|data-annotation-number|annotation\.number/);
 });
 
 test('operation log annotations are wired into the active set and dedicated drawer', () => {
@@ -226,6 +221,17 @@ test('mock only includes member-triggered business actions', () => {
   );
 });
 
+test('portal samples only use verified current frontstage module names', () => {
+  const verifiedFrontstageModules = new Set([
+    '数据源市场', '店铺管理', '计划管理', '运行记录', '数据监控', '参数管理', '操作日志',
+  ]);
+  const portalRecords = mockOperationLogs.filter((item) => item.source === 'portal');
+
+  assert.ok(portalRecords.every((item) => verifiedFrontstageModules.has(item.module)));
+  assert.equal(portalRecords.some((item) => item.module === '任务计划'), false);
+  assert.equal(portalRecords.some((item) => item.module === '连接器管理'), false);
+});
+
 test('all three tabs share the fixed eleven operation type options', () => {
   assert.deepEqual(OPERATION_TYPES, [
     '新增', '修改', '删除', '启用', '停用', '执行', '重试', '导入', '导出', '授权', '其他',
@@ -321,25 +327,23 @@ test('operation log page exposes the three source tabs and approved filters', ()
   }
 });
 
-test('page wires controllable query/export states and controlled pagination', () => {
+test('page keeps failure recovery off the business UI and controls pagination', () => {
   const page = readFileSync(
     new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
     'utf8',
   );
 
   for (const text of [
-    '模拟查询失败',
-    '操作日志加载失败',
-    '重新加载',
-    '下次导出成功',
-    '下次导出失败',
-    '导出中',
-    '导出成功',
-    '导出失败',
-    '重试导出',
+    '操作日志加载失败', '重新加载', '导出中', '导出成功', '导出失败', '重试导出',
   ]) {
     assert.match(page, new RegExp(text));
   }
+  for (const explanationMeta of [
+    '原型仅固定展示', '原型评审场景', '模拟查询失败', '下次导出成功', '下次导出失败',
+  ]) {
+    assert.doesNotMatch(page, new RegExp(explanationMeta));
+  }
+  assert.match(page, /operationLogScenario/);
   assert.match(page, /if \(exportLockRef\.current\) return;/);
   assert.match(page, /prependOperationLogRecordOnce\(current, auditRecord\)/);
   assert.match(page, /result: actualOutcome/);
@@ -446,16 +450,14 @@ test('PRD defines the reviewed failure, operation type and log compensation rule
 
   for (const text of [
     '查询接口失败时页面应展示失败状态和“重新加载”',
-    '原型通过可控评审场景模拟失败、重新加载和恢复',
-    '通过原型可控 mock 验收失败、加载中与恢复',
     '新增、修改、删除、启用、停用、执行、重试、导入、导出、授权、其他',
     '三类来源统一分类口径',
     '服务端日志写入失败时应告警并进入补偿',
     '不得改变原业务操作结果或向用户返回原业务失败',
-    '当前原型 mock 不模拟补偿',
   ]) {
     assert.match(prd, new RegExp(text));
   }
+  assert.doesNotMatch(prd, /原型|mock|评审场景/);
   assert.equal((prd.match(/查询接口失败时页面应展示失败状态和“重新加载”/g) ?? []).length, 1);
   assert.equal((prd.match(/服务端日志写入失败时应告警并进入补偿/g) ?? []).length, 2);
 });

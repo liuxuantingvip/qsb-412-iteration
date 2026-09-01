@@ -4,18 +4,13 @@ import {
   RequirementAnnotationMarker,
 } from '@/components/requirementAnnotations';
 import type { RequirementAnnotation } from '@/components/requirementAnnotations';
-import { useActiveRequirement } from '@/context/RequirementContext';
 import { portalOperationLogAnnotations } from './data';
-import styles from './index.module.less';
 
 export function PortalOperationLogAnnotationMarker({ noteId, children, layout }: {
   noteId: string;
   children?: ReactNode;
   layout?: 'inline' | 'block' | 'fill';
 }) {
-  const activeRequirement = useActiveRequirement();
-  const annotation = portalOperationLogAnnotations.find((item) => item.noteId === noteId);
-
   return (
     <RequirementAnnotationMarker
       requirementKey="portalOperationLog"
@@ -23,15 +18,6 @@ export function PortalOperationLogAnnotationMarker({ noteId, children, layout }:
       noteId={noteId}
       layout={layout}
     >
-      {activeRequirement === 'portalOperationLog' && annotation ? (
-        <span
-          aria-hidden="true"
-          className={styles.numberAnchor}
-          data-annotation-number={annotation.number}
-        >
-          {annotation.number}
-        </span>
-      ) : null}
       {children}
     </RequirementAnnotationMarker>
   );

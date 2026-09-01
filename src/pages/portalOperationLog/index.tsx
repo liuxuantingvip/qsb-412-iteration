@@ -33,7 +33,7 @@ import type {
 } from './model';
 import styles from './index.module.less';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TabPane } = Tabs;
 const operationResultLabel = '操作结果';
 
@@ -82,6 +82,19 @@ export default function PortalOperationLog() {
   const [mockState, dispatchMock] = useReducer(
     reducePortalOperationLogMockState,
     initialPortalOperationLogMockState,
+    (initialState) => {
+      const scenario = new URLSearchParams(window.location.search).get('operationLogScenario');
+      if (scenario === 'query-failed') {
+        return reducePortalOperationLogMockState(initialState, { type: 'query/fail' });
+      }
+      if (scenario === 'export-failed') {
+        return reducePortalOperationLogMockState(initialState, {
+          type: 'export/set-next-outcome',
+          outcome: 'failed',
+        });
+      }
+      return initialState;
+    },
   );
   const exportLockRef = useRef(false);
   const exportTimerRef = useRef<number>();
@@ -173,11 +186,6 @@ export default function PortalOperationLog() {
     setCurrentPage(1);
   };
 
-  const simulateQueryFailure = () => {
-    if (queryTimerRef.current) window.clearTimeout(queryTimerRef.current);
-    dispatchMock({ type: 'query/fail' });
-  };
-
   const reloadQuery = () => {
     if (mockState.queryStatus !== 'failed') return;
     dispatchMock({ type: 'query/reload' });
@@ -204,7 +212,7 @@ export default function PortalOperationLog() {
 
       try {
         if (expectedOutcome === 'failed') {
-          throw new Error('原型模拟：导出服务暂不可用');
+          throw new Error('导出服务暂不可用');
         }
         const csv = buildOperationLogCsv(exportRecords);
         const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
@@ -276,36 +284,7 @@ export default function PortalOperationLog() {
     <div className={styles.page}>
       <PortalOperationLogAnnotationMarker noteId="POL-1" layout="block">
         <div className={styles.pageHeader}>
-          <div>
-            <Title className={styles.title} heading={5}>操作日志</Title>
-            <Text className={styles.subtitle}>
-              原型仅固定展示 tenant-aa 的 mock 数据，未接入真实鉴权与日志接口，不跨租户展示或导出。
-            </Text>
-            <div className={styles.mockControls}>
-              <Text>原型评审场景</Text>
-              <Button
-                size="small"
-                status="danger"
-                disabled={mockState.queryStatus !== 'ready'}
-                onClick={simulateQueryFailure}
-              >
-                模拟查询失败
-              </Button>
-              <Select
-                size="small"
-                value={mockState.nextExportOutcome}
-                disabled={mockState.exportStatus === 'loading'}
-                options={[
-                  { label: '下次导出成功', value: 'success' },
-                  { label: '下次导出失败', value: 'failed' },
-                ]}
-                onChange={(outcome) => dispatchMock({
-                  type: 'export/set-next-outcome',
-                  outcome: outcome as ExportMockOutcome,
-                })}
-              />
-            </div>
-          </div>
+          <Title className={styles.title} heading={5}>操作日志</Title>
           <PortalOperationLogAnnotationMarker noteId="POL-6">
             <Button
               type="primary"
