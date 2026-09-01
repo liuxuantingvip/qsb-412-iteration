@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test:etl": "node --test --experimental-strip-types tests/accountNavigation.test.ts tests/etlDataMonitoringStatusModel.test.ts tests/iterationRequirements.test.ts tests/qsbOverviewContent.test.ts"
+    "test:etl": "node --test --experimental-strip-types tests/accountNavigation.test.ts tests/etlDataMonitoringStatusModel.test.ts tests/iterationRequirements.test.ts tests/qsbOverviewContent.test.ts tests/portalOperationLog.test.ts"
   },
   "dependencies": {
     "@arco-design/web-react": "^2.66.15",
