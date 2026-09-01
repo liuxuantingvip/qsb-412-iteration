@@ -18,6 +18,20 @@ test('operation log annotations keep the approved order and account navigation t
   assert.ok(portalOperationLogAnnotations.every((item) => item.menuKey === '操作日志'));
 });
 
+test('portal marker renders each annotation number from the approved mapping', () => {
+  const markerAdapter = readFileSync(
+    new URL('../src/components/portalOperationLogAnnotations/index.tsx', import.meta.url),
+    'utf8',
+  );
+  const numbers = ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6'].map((noteId) => (
+    portalOperationLogAnnotations.find((item) => item.noteId === noteId)?.number
+  ));
+
+  assert.deepEqual(numbers, ['1', '2', '3', '4', '5', '6']);
+  assert.equal(new Set(numbers).size, 6);
+  assert.match(markerAdapter, /{annotation\.number}/);
+});
+
 test('operation log annotations are wired into the active set and dedicated drawer', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
@@ -101,9 +115,29 @@ test('operation log page exposes the three source tabs and approved filters', ()
   assert.match(page, /功能模块/);
   assert.match(page, /操作类型/);
   assert.doesNotMatch(page, /placeholder="搜索操作内容"|操作结果.*Select/s);
+  assert.doesNotMatch(page, /data-note-id=["']POL-/);
   for (const id of ['POL-1', 'POL-2', 'POL-3', 'POL-4', 'POL-5', 'POL-6']) {
-    assert.match(page, new RegExp(id));
+    assert.equal(
+      (page.match(new RegExp(`<PortalOperationLogAnnotationMarker noteId=["']${id}["']`, 'g')) ?? []).length,
+      1,
+    );
   }
+});
+
+test('POL-4 marker owns the remaining flex height and its table fills the marker', () => {
+  const styles = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.module.less', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    styles,
+    /\.page\s*>\s*\[data-note-id=['"]POL-4['"]\]\s*{[\s\S]*?flex:\s*1;[\s\S]*?min-height:\s*0;/,
+  );
+  assert.match(
+    styles,
+    /\.page\s*>\s*\[data-note-id=['"]POL-4['"]\]\s*>\s*\.tableWrap\s*{[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;/,
+  );
 });
 
 test('account area mounts the operation log page explicitly', () => {
@@ -157,6 +191,13 @@ test('PRD branch mounts the portal operation log PRD explicitly', () => {
   assert.match(
     app,
     /if \(activeRequirement === 'portalOperationLog'\) return <PortalOperationLogPrd \/>;/,
+  );
+});
+
+test('POL-5 keeps its detail-opening event for annotation location', () => {
+  assert.equal(
+    portalOperationLogAnnotations.find((item) => item.noteId === 'POL-5')?.openEvent,
+    'portal-operation-log:open-detail',
   );
 });
 
