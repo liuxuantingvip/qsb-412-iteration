@@ -137,3 +137,24 @@ test('PRD branch mounts the portal operation log PRD explicitly', () => {
     /if \(activeRequirement === 'portalOperationLog'\) return <PortalOperationLogPrd \/>;/,
   );
 });
+
+test('PRD defines the reviewed failure, operation type and log compensation rules', () => {
+  const prd = readFileSync(
+    new URL('../src/pages/portalOperationLogPrd/index.tsx', import.meta.url),
+    'utf8',
+  );
+
+  for (const text of [
+    '查询接口失败时页面应展示失败状态和“重新加载”',
+    '当前原型 mock 不模拟该状态',
+    '新增、修改、删除、启用、停用、执行、重试、导入、导出、授权、其他',
+    '三类来源统一分类口径',
+    '服务端日志写入失败时应告警并进入补偿',
+    '不得改变原业务操作结果或向用户返回原业务失败',
+    '当前原型 mock 不模拟补偿',
+  ]) {
+    assert.match(prd, new RegExp(text));
+  }
+  assert.equal((prd.match(/查询接口失败时页面应展示失败状态和“重新加载”/g) ?? []).length, 2);
+  assert.equal((prd.match(/服务端日志写入失败时应告警并进入补偿/g) ?? []).length, 2);
+});
