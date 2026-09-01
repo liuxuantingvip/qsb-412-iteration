@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将操作日志详情从灰底卡片集合收口为“行为摘要 + 无底色基础信息 + 按需审计详情”。
+**Goal:** 将操作日志详情从灰底卡片集合收口为“无底色基础信息 + 按需审计详情”。
 
-**Architecture:** 保留现有 `PortalOperationLog` 页面、抽屉和 `OperationLogRecord` 数据结构，只调整详情 JSX 与局部样式。行为摘要复用 `operatorName`、`module`、`content`；失败原因、请求摘要和字段变更继续使用已有可选字段，并以 `detailAvailable` 控制详情区是否渲染。
+**Architecture:** 保留现有 `PortalOperationLog` 页面、抽屉和 `OperationLogRecord` 数据结构，只调整详情 JSX 与局部样式。抽屉直接从基础信息开始；失败原因、请求摘要和字段变更继续使用已有可选字段，并以 `detailAvailable` 控制详情区是否渲染。
 
 **Tech Stack:** React、TypeScript、Arco Design、Less、Node.js test runner
 
@@ -27,14 +27,14 @@
 
 **Interfaces:**
 - Consumes: `src/pages/portalOperationLog/index.tsx` 与 `index.module.less` 源码文本
-- Produces: 回归断言，约束摘要、无卡片基础信息和条件化详情
+- Produces: 回归断言，约束无卡片基础信息和条件化详情
 
 - [ ] **Step 1: 写入失败断言**
 
 在现有详情布局测试中增加：
 
 ```ts
-assert.match(page, /className=\{styles\.operationSummary\}/);
+assert.doesNotMatch(page, /className=\{styles\.operationSummary\}/);
 assert.match(page, /\{detailAvailable \? \(/);
 assert.doesNotMatch(page, /<Empty description="详情暂不可用" \/>/);
 assert.doesNotMatch(styles, /\.basicInfoItem[\s\S]*?background:/);
@@ -45,7 +45,7 @@ assert.match(styles, /\.changeHeader/);
 
 Run: `node --test --experimental-strip-types tests/portalOperationLog.test.ts`
 
-Expected: FAIL，缺少 `operationSummary`、`changeHeader`，并仍存在空详情和基础信息背景色。
+Expected: FAIL，仍存在 `operationSummary` 和空详情，缺少 `changeHeader`，基础信息仍有背景色。
 
 - [ ] **Step 3: 保留失败证据并进入实现**
 
@@ -62,18 +62,14 @@ Expected: FAIL，缺少 `operationSummary`、`changeHeader`，并仍存在空详
 
 **Interfaces:**
 - Consumes: `activeRecord: OperationLogRecord | null`、`detailAvailable: boolean`
-- Produces: `.operationSummary`、`.basicInfoGrid`、`.changeHeader`、`.changeRow` 详情结构
+- Produces: `.basicInfoGrid`、`.changeHeader`、`.changeRow` 详情结构
 
-- [ ] **Step 1: 增加行为摘要**
+- [ ] **Step 1: 删除重复摘要**
 
-在基础信息前渲染：
+抽屉直接从基础信息开始，不渲染以下重复结构：
 
 ```tsx
-<div className={styles.operationSummary}>
-  <strong>{activeRecord.operatorName}</strong>
-  <span>在{activeRecord.module}中</span>
-  <p>{activeRecord.content}</p>
-</div>
+assert.doesNotMatch(page, /className=\{styles\.operationSummary\}/);
 ```
 
 - [ ] **Step 2: 基础信息改为无卡片键值布局**

@@ -376,7 +376,7 @@ test('filter controls stay on one row and detail basics use the approved spaciou
   assert.doesNotMatch(page, /<Descriptions/);
 });
 
-test('detail drawer prioritizes the action and only renders meaningful audit details', () => {
+test('detail drawer starts with basic information and only renders meaningful audit details', () => {
   const page = readFileSync(
     new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
     'utf8',
@@ -386,7 +386,8 @@ test('detail drawer prioritizes the action and only renders meaningful audit det
     'utf8',
   );
 
-  assert.match(page, /className={styles\.operationSummary}/);
+  assert.doesNotMatch(page, /className={styles\.operationSummary}/);
+  assert.doesNotMatch(page, /className={styles\.operationSummaryMeta}/);
   assert.match(
     page,
     /{detailAvailable \? \(\s*<div className={styles\.detailSection}>/,

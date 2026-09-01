@@ -427,14 +427,6 @@ export default function PortalOperationLog() {
           <div className={styles.drawerContent}>
             {activeRecord ? (
               <>
-                <div className={styles.operationSummary}>
-                  <div className={styles.operationSummaryMeta}>
-                    <strong>{activeRecord.operatorName}</strong>
-                    <span>在{activeRecord.module}中</span>
-                  </div>
-                  <p>{activeRecord.content}</p>
-                </div>
-
                 <div className={styles.basicInfoSection}>
                   <h3>基础信息</h3>
                   <div className={styles.basicInfoGrid}>
