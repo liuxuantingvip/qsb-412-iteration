@@ -2,7 +2,6 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   Button,
   DatePicker,
-  Descriptions,
   Drawer,
   Empty,
   Message,
@@ -328,8 +327,8 @@ export default function PortalOperationLog() {
       <PortalOperationLogAnnotationMarker noteId="POL-3" layout="block">
         <div className={styles.filterBar}>
           <div className={styles.filterItem}>
-            <span>时间范围</span>
             <DatePicker.RangePicker
+              aria-label="时间范围"
               allowClear={false}
               format="YYYY-MM-DD"
               value={dateRange}
@@ -337,8 +336,8 @@ export default function PortalOperationLog() {
             />
           </div>
           <div className={styles.filterItem}>
-            <span>操作者</span>
             <Select
+              aria-label="操作者"
               allowClear
               options={operatorOptions}
               placeholder="全部操作者"
@@ -347,8 +346,8 @@ export default function PortalOperationLog() {
             />
           </div>
           <div className={styles.filterItem}>
-            <span>功能模块</span>
             <Select
+              aria-label="功能模块"
               allowClear
               options={moduleOptions}
               placeholder="全部模块"
@@ -357,8 +356,8 @@ export default function PortalOperationLog() {
             />
           </div>
           <div className={styles.filterItem}>
-            <span>操作类型</span>
             <Select
+              aria-label="操作类型"
               allowClear
               options={operationTypeOptions}
               placeholder="全部类型"
@@ -371,8 +370,8 @@ export default function PortalOperationLog() {
           </div>
           {source !== 'portal' ? (
             <div className={styles.filterItem}>
-              <span>凭证名称</span>
               <Select
+                aria-label="凭证名称"
                 allowClear
                 options={credentialOptions}
                 placeholder="全部凭证"
@@ -418,7 +417,7 @@ export default function PortalOperationLog() {
       </PortalOperationLogAnnotationMarker>
 
       <Drawer
-        width={640}
+        width={720}
         title="操作详情"
         visible={Boolean(activeRecord)}
         footer={null}
@@ -428,47 +427,71 @@ export default function PortalOperationLog() {
           <div className={styles.drawerContent}>
             {activeRecord ? (
               <>
-              <Descriptions
-                border
-                column={2}
-                size="small"
-                title="基础信息"
-                data={[
-                  { label: '操作时间', value: activeRecord.operatedAt },
-                  { label: '操作者', value: activeRecord.operatorName },
-                  { label: '功能模块', value: activeRecord.module },
-                  { label: '操作类型', value: activeRecord.operationType },
-                  { label: operationResultLabel, value: <ResultTag result={activeRecord.result} /> },
-                  { label: 'IP 地址', value: activeRecord.ip },
-                  ...(activeRecord.source === 'portal' ? [] : [{
-                    label: '凭证名称',
-                    value: activeRecord.credentialName || '-',
-                  }]),
-                  { label: '操作内容', value: activeRecord.content, span: 2 },
-                ]}
-              />
-
-              <div className={styles.detailSection}>
-                <h3>操作详情</h3>
-                {detailAvailable ? (
-                  <div className={styles.detailList}>
-                    {activeRecord.failureReason ? (
-                      <div><span>失败原因</span><strong>{activeRecord.failureReason}</strong></div>
-                    ) : null}
-                    {activeRecord.requestSummary ? (
-                      <div><span>脱敏请求摘要</span><strong>{activeRecord.requestSummary}</strong></div>
-                    ) : null}
-                    {activeRecord.changes?.map((change) => (
-                      <div className={styles.changeRow} key={change.field}>
-                        <span>{change.field}</span>
-                        <strong>{change.before}</strong>
-                        <i>→</i>
-                        <strong>{change.after}</strong>
+                <div className={styles.basicInfoSection}>
+                  <h3>基础信息</h3>
+                  <div className={styles.basicInfoGrid}>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>操作时间</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.operatedAt}</span>
+                    </div>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>操作者</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.operatorName}</span>
+                    </div>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>功能模块</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.module}</span>
+                    </div>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>操作类型</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.operationType}</span>
+                    </div>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>{operationResultLabel}</span>
+                      <span className={styles.basicInfoValue}>
+                        <ResultTag result={activeRecord.result} />
+                      </span>
+                    </div>
+                    <div className={styles.basicInfoItem}>
+                      <span className={styles.basicInfoLabel}>IP 地址</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.ip}</span>
+                    </div>
+                    {activeRecord.source !== 'portal' ? (
+                      <div className={styles.basicInfoItem}>
+                        <span className={styles.basicInfoLabel}>凭证名称</span>
+                        <span className={styles.basicInfoValue}>
+                          {activeRecord.credentialName || '-'}
+                        </span>
                       </div>
-                    ))}
+                    ) : null}
+                    <div className={styles.basicInfoItemWide}>
+                      <span className={styles.basicInfoLabel}>操作内容</span>
+                      <span className={styles.basicInfoValue}>{activeRecord.content}</span>
+                    </div>
                   </div>
-                ) : <Empty description="详情暂不可用" />}
-              </div>
+                </div>
+
+                <div className={styles.detailSection}>
+                  <h3>操作详情</h3>
+                  {detailAvailable ? (
+                    <div className={styles.detailList}>
+                      {activeRecord.failureReason ? (
+                        <div><span>失败原因</span><strong>{activeRecord.failureReason}</strong></div>
+                      ) : null}
+                      {activeRecord.requestSummary ? (
+                        <div><span>脱敏请求摘要</span><strong>{activeRecord.requestSummary}</strong></div>
+                      ) : null}
+                      {activeRecord.changes?.map((change) => (
+                        <div className={styles.changeRow} key={change.field}>
+                          <span>{change.field}</span>
+                          <strong>{change.before}</strong>
+                          <i>→</i>
+                          <strong>{change.after}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <Empty description="详情暂不可用" />}
+                </div>
               </>
             ) : null}
           </div>

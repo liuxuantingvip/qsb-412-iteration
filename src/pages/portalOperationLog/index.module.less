@@ -52,17 +52,14 @@
 
 .filterBar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .filterItem {
   min-width: 148px;
-  display: grid;
-  gap: 6px;
-  color: var(--color-text-2);
-  font-size: 13px;
+  display: block;
 }
 
 .filterItem:first-child {
@@ -117,15 +114,51 @@
   gap: 24px;
 }
 
+.basicInfoSection,
 .detailSection {
   display: grid;
   gap: 12px;
 }
 
+.basicInfoSection h3,
 .detailSection h3 {
   margin: 0;
   color: var(--color-text-1);
   font-size: 16px;
+}
+
+.basicInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.basicInfoItem,
+.basicInfoItemWide {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--qsb-radius-8);
+  background: var(--color-fill-1);
+}
+
+.basicInfoItemWide {
+  grid-column: 1 / -1;
+}
+
+.basicInfoLabel {
+  color: var(--color-text-3);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.basicInfoValue {
+  min-width: 0;
+  color: var(--color-text-1);
+  font-size: 14px;
+  line-height: 22px;
+  overflow-wrap: anywhere;
 }
 
 .detailList {
@@ -161,11 +194,25 @@
 }
 
 @media (max-width: 1180px) {
+  .filterBar {
+    flex-wrap: wrap;
+  }
+
   .filterItem {
     flex: 1 1 180px;
   }
 
   .filterItem:first-child {
     flex-basis: 250px;
+  }
+}
+
+@media (max-width: 720px) {
+  .basicInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .basicInfoItemWide {
+    grid-column: auto;
   }
 }

@@ -360,6 +360,22 @@ test('page keeps failure recovery off the business UI and controls pagination', 
   assert.doesNotMatch(exportBlock, /setSource|setFilters|setDateRange|setCurrentPage/);
 });
 
+test('filter controls stay on one row and detail basics use the approved spacious layout', () => {
+  const page = readFileSync(
+    new URL('../src/pages/portalOperationLog/index.tsx', import.meta.url),
+    'utf8',
+  );
+
+  for (const label of ['时间范围', '操作者', '功能模块', '操作类型', '凭证名称']) {
+    assert.doesNotMatch(page, new RegExp(`<span>${label}<\\/span>`));
+  }
+  assert.match(page, /aria-label="时间范围"/);
+  assert.match(page, /width=\{720\}/);
+  assert.match(page, /className={styles\.basicInfoGrid}/);
+  assert.match(page, /className={styles\.basicInfoItemWide}/);
+  assert.doesNotMatch(page, /<Descriptions/);
+});
+
 test('POL-4 marker owns the remaining flex height and its table fills the marker', () => {
   const styles = readFileSync(
     new URL('../src/pages/portalOperationLog/index.module.less', import.meta.url),
