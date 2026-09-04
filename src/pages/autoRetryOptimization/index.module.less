@@ -563,51 +563,6 @@
   padding: @spacing-5 @spacing-7;
 }
 
-.runDetailDrawer :global(.arco-drawer-body) {
-  padding: @spacing-7;
-}
-
-.runDetailBody {
-  display: flex;
-  flex-direction: column;
-  gap: @spacing-7;
-}
-
-.runDetailBody section {
-  padding: @spacing-6;
-  border: @border-1 @border-solid var(--color-border-2);
-  border-radius: @radius-large;
-  background: var(--color-bg-2);
-}
-
-.runDetailBody h3 {
-  margin: 0 0 @spacing-5;
-  font-size: 16px;
-}
-
-.runDetailGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: @spacing-5 @spacing-8;
-}
-
-.runDetailGrid > div {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: @spacing-2;
-}
-
-.runDetailGrid span {
-  color: var(--color-text-3);
-}
-
-.runDetailGrid strong {
-  color: var(--color-text-1);
-  font-weight: 500;
-  word-break: break-word;
-}
-
 @media (max-width: 1400px) {
   .filters {
     gap: @spacing-3;

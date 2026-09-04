@@ -1,0 +1,138 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.page {
+  min-width: 0;
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  gap: @spacing-6;
+  padding: @spacing-8 @spacing-9 @size-7;
+  overflow-x: hidden;
+  background: var(--color-bg-2);
+  font-size: 14px;
+}
+
+.title:global(.arco-typography) {
+  margin: 0 0 @spacing-1;
+  color: var(--color-text-1);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: @spacing-6;
+}
+
+.panel,
+.section {
+  min-width: 0;
+  display: grid;
+}
+
+.panel {
+  gap: 32px;
+}
+
+.section {
+  gap: 12px;
+  scroll-margin-top: 60px;
+}
+
+.subsection { display: grid; gap: 12px; min-width: 0; }
+.subsection + .subsection { margin-top: 12px; }
+.flow + .paragraph,
+.flow + .table { margin-top: 4px; }
+.subsection h4, .flow h4 { margin: 0; font-size: 16px; color: var(--color-text-1); }
+.flow { min-width: 0; border: 1px solid var(--color-border-2); border-radius: @border-radius-medium; }
+.flowHeader { display: flex; align-items: center; justify-content: space-between; gap: @spacing-4; padding: @spacing-4; background: var(--color-fill-1); }
+.flowTools { display: flex; gap: @spacing-2; }
+.flowDescription.paragraph { margin: 12px 16px 0; }
+.messagePreview {
+  width: min(920px, 100%);
+  margin-inline: auto;
+  border: 1px solid var(--color-border-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.flowViewport { overflow: auto; padding: @spacing-5; min-height: 160px; }
+.flowSvg { min-width: 0; margin-inline: auto; }
+.flowSvg svg { display: block; width: 100%; height: auto; max-width: none !important; }
+
+.section h3 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: 16px;
+  font-weight: @font-weight-700;
+  line-height: 1.5;
+}
+
+.paragraph {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.prominentSection {
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+.table {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.table + .table {
+  margin-top: @spacing-5;
+}
+
+.table :global(.arco-table) {
+  width: 100%;
+  font-size: 14px;
+}
+
+.table :global(.arco-table-th),
+.table :global(.arco-table-td) {
+  font-size: 14px;
+  padding: 12px 16px;
+  border-color: var(--color-border-2);
+  color: var(--color-text-1);
+  line-height: 1.55;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.table :global(.arco-table-th) {
+  background: var(--color-fill-1);
+  color: var(--color-text-2);
+  font-weight: @font-weight-700;
+  white-space: nowrap;
+}
+
+.table :global(.arco-table-th-item) {
+  padding: 0;
+}
+
+.table :global(.arco-table-th:first-child),
+.table :global(.arco-table-td:first-child) {
+  min-width: 128px;
+}
+
+.scenarioTable :global(.arco-table-th:first-child),
+.scenarioTable :global(.arco-table-td:first-child) {
+  width: @size-28;
+  font-weight: @font-weight-700;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 18px @spacing-7 @size-7;
+  }
+
+}

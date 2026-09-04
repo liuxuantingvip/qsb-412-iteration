@@ -1,0 +1,311 @@
+@import '@arco-design/web-react/es/style/theme/default.less';
+
+.statusTag {
+  margin: 0;
+  border: @border-none;
+  border-radius: @radius-large;
+  font-size: @font-size-body-3;
+  white-space: nowrap;
+}
+
+.runDetailModal :global(.arco-modal-content) {
+  padding: @spacing-6;
+}
+
+.runDetailModal :global(.arco-modal-header) {
+  padding: @spacing-5 @spacing-6;
+}
+
+.runDetailModal :global(.arco-modal-title) {
+  max-width: calc(100vw - 96px);
+  color: var(--color-text-1);
+  font-size: @font-size-title-1;
+  text-align: left;
+}
+
+.runDetailModal :global(.arco-table-expanded-row > .arco-table-td) {
+  padding: 0;
+  background: var(--color-fill-1);
+}
+
+.runDetailModal :global(.arco-table-cell) {
+  white-space: nowrap;
+}
+
+.operationHeader,
+.sectionHeader,
+.resultToolbar,
+.logToolbar,
+.modalFooter,
+.logFooter,
+.resultStatusCell {
+  display: flex;
+  align-items: center;
+}
+
+.operationHeader {
+  justify-content: space-between;
+  gap: @spacing-4;
+}
+
+.modalFooter,
+.logFooter {
+  min-height: @size-13;
+  justify-content: flex-end;
+  gap: @spacing-6;
+  color: var(--color-text-2);
+}
+
+.recordDrawer {
+  min-width: 0;
+}
+
+.recordDrawer :global(.arco-drawer-content) {
+  position: relative;
+  overflow: visible;
+  padding: 0;
+}
+
+.recordDrawer :global(.arco-drawer-inner),
+.recordDrawer :global(.arco-drawer-scroll) {
+  overflow: visible;
+}
+
+.recordDrawerResizeHandle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  width: @size-8;
+  height: @size-9;
+  align-items: center;
+  justify-content: center;
+  border: @border-1 @border-solid var(--color-border-3);
+  border-radius: @radius-large;
+  background: var(--color-bg-2);
+  color: var(--color-text-3);
+  cursor: ew-resize;
+  transform: translate(-50%, -50%);
+}
+
+.recordDrawerResizeHandle:hover,
+.recordDrawerResizeHandle:focus-visible,
+.recordDrawerResizing .recordDrawerResizeHandle {
+  border-color: rgb(var(--primary-6));
+  color: rgb(var(--primary-6));
+  outline: none;
+}
+
+.recordDrawerResizing :global(.arco-drawer-content) {
+  user-select: none;
+}
+
+.recordDrawerBody {
+  max-height: calc(100vh - 96px);
+  min-height: 100%;
+  overflow-y: auto;
+  background: var(--color-bg-2);
+}
+
+.basicSection,
+.resultSection {
+  padding: @spacing-7;
+}
+
+.basicSection {
+  border-bottom: @border-1 @border-solid var(--color-border-2);
+}
+
+.sectionHeader {
+  min-height: @size-8;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: @spacing-6;
+  margin-bottom: @spacing-5;
+}
+
+.recordActions {
+  justify-content: flex-end;
+}
+
+.sectionHeader h3,
+.resultSection h3 {
+  margin: 0;
+  color: var(--color-text-1);
+  font-size: @font-size-body-3;
+  font-weight: 600;
+}
+
+.basicGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: @spacing-4 @spacing-7;
+}
+
+.basicGrid > div {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  line-height: 22px;
+}
+
+.basicGrid > .basicItemFull {
+  grid-column: 1 / -1;
+}
+
+.basicGrid span {
+  flex: none;
+  color: var(--color-text-3);
+}
+
+.basicGrid strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-1);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.basicGrid :global(.arco-typography) {
+  min-width: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultSection h3 {
+  margin-bottom: @spacing-5;
+}
+
+.resultToolbar {
+  flex-wrap: wrap;
+  gap: @spacing-4;
+  margin-bottom: @spacing-5;
+}
+
+.resultToolbar :global(.arco-select) {
+  width: 148px;
+}
+
+.resultStatusCell {
+  min-width: 0;
+  gap: @spacing-2;
+}
+
+.resultStatusCell > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logDrawer :global(.arco-drawer-content) {
+  display: flex;
+  flex-direction: column;
+  padding: @spacing-6;
+}
+
+.logDrawer :global(.arco-table-cell) {
+  white-space: nowrap;
+}
+
+.logToolbar {
+  flex: none;
+  flex-wrap: wrap;
+  gap: @spacing-4;
+  margin-bottom: @spacing-5;
+}
+
+.logToolbar :global(.arco-select) {
+  width: 138px;
+}
+
+.logSearch {
+  width: 236px;
+}
+
+.logSearch :global(.arco-input-inner-wrapper) {
+  border-radius: @radius-large;
+}
+
+.storageTableCell,
+.storageTimeCell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: @spacing-1;
+}
+
+.storageTableCell strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storageEnglishName {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text-2);
+  font-size: @font-size-body-1;
+  line-height: 20px;
+  white-space: normal;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.storageTableCell span,
+.storageTimeCell span:last-child {
+  color: var(--color-text-3);
+  font-size: @font-size-body-1;
+}
+
+.storageFailureReason {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-2);
+  line-height: 20px;
+  white-space: normal;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.storagePartialStatus {
+  display: flex;
+  align-items: center;
+  gap: @spacing-2;
+  color: var(--color-text-3);
+  font-size: @font-size-body-1;
+  white-space: nowrap;
+}
+
+.logSpin {
+  min-height: 0;
+  flex: 1;
+}
+
+.logContent {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .basicGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .basicGrid > .basicItemFull {
+    grid-column: auto;
+  }
+
+}

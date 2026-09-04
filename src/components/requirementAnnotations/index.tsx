@@ -1,12 +1,14 @@
 import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Badge, Button, Tabs, Tag, Typography } from '@arco-design/web-react';
+import { Alert, Badge, Button, Empty, Input, Select, Spin, Tabs, Tag, Typography } from '@arco-design/web-react';
 import {
+  IconApps,
   IconCheckCircleFill,
   IconClose,
   IconCloseCircleFill,
   IconExclamationCircleFill,
   IconPauseCircleFill,
+  IconRobot,
 } from '@arco-design/web-react/icon';
 import type { RequirementKey } from '@/context/RequirementContext';
 import { useActiveRequirement } from '@/context/RequirementContext';
@@ -39,12 +41,40 @@ export type AnnotationPreview =
       type: 'empty';
     }
   | {
+      actionLabel?: string;
+      label: string;
+      status?: 'empty' | 'error';
+      textColor?: string;
+      type: 'empty-state';
+    }
+  | {
       label: string;
       type: 'field';
+    }
+  | {
+      actionLabel: string;
+      relationLabel: string;
+      searchPlaceholder: string;
+      selectPlaceholders: string[];
+      type: 'filter-bar';
+    }
+  | {
+      label: string;
+      type: 'loading-state';
+    }
+  | {
+      label: string;
+      status: 'success' | 'error';
+      type: 'result-text';
+    }
+  | {
+      selected: 'robot' | 'data';
+      type: 'view-switch';
     };
 
 export type AnnotationContentItem = {
   children?: AnnotationContentItem[];
+  example?: string;
   previews?: AnnotationPreview[];
   text: string;
 };
@@ -63,13 +93,16 @@ export type RequirementAnnotation = {
   exceptionLabel?: string;
   state?: string;
   stateItems?: AnnotationContentItem[];
+  stateLabel?: string;
   recovery?: string;
   recoveryItems?: AnnotationContentItem[];
+  recoveryLabel?: string;
   acceptance: string;
   acceptanceItems?: AnnotationContentItem[];
-  topTab: '数据源市场' | '电商取数宝' | '跨境取数宝' | '后台管理' | '个人中心';
+  topTab: '数据源市场' | '电商取数宝' | '跨境取数宝' | '后台管理' | '个人中心' | '推送策略中心';
   menuKey: string;
   openEvent?: string;
+  locateMode?: 'column-headers';
 };
 
 function renderPreview(preview: AnnotationPreview) {
@@ -125,6 +158,67 @@ function renderPreview(preview: AnnotationPreview) {
       </span>
     );
   }
+  if (preview.type === 'filter-bar') {
+    return (
+      <div className={styles.filterBarPreview} key={preview.type}>
+        <Input.Search
+          className={styles.filterSearchPreview}
+          placeholder={preview.searchPlaceholder}
+          readOnly
+          size="mini"
+        />
+        <div className={styles.filterControlsPreview}>
+          {preview.selectPlaceholders.map((placeholder) => (
+            <Select key={placeholder} placeholder={placeholder} size="mini" />
+          ))}
+          <Button size="mini" type="text">{preview.actionLabel}</Button>
+        </div>
+        <div className={styles.filterRelationPreview}>{preview.relationLabel}</div>
+      </div>
+    );
+  }
+  if (preview.type === 'loading-state') {
+    return (
+      <span className={styles.loadingStatePreview} key={`${preview.type}-${preview.label}`}>
+        <Spin loading size={16} />
+        <span>{preview.label}</span>
+      </span>
+    );
+  }
+  if (preview.type === 'empty-state') {
+    return (
+      <div
+        className={`${styles.emptyStatePreview} ${preview.status === 'error' ? styles.emptyStateError : ''}`}
+        style={preview.textColor ? { '--annotation-empty-description-color': preview.textColor } as React.CSSProperties : undefined}
+        key={`${preview.type}-${preview.label}`}
+      >
+        <Empty description={preview.label} />
+        {preview.actionLabel ? <Button size="mini" type="primary">{preview.actionLabel}</Button> : null}
+      </div>
+    );
+  }
+  if (preview.type === 'result-text') {
+    return (
+      <span
+        className={preview.status === 'success' ? styles.resultSuccessPreview : styles.resultErrorPreview}
+        key={`${preview.type}-${preview.label}`}
+      >
+        {preview.label}
+      </span>
+    );
+  }
+  if (preview.type === 'view-switch') {
+    return (
+      <span className={styles.viewSwitchPreview} key={`${preview.type}-${preview.selected}`}>
+        <span className={preview.selected === 'robot' ? styles.viewSwitchActivePreview : ''} aria-label="机器人视图">
+          <IconRobot />
+        </span>
+        <span className={preview.selected === 'data' ? styles.viewSwitchActivePreview : ''} aria-label="运行数据视图">
+          <IconApps />
+        </span>
+      </span>
+    );
+  }
   return (
     <span className={styles.emptyPreview} key={`${preview.type}-${preview.label}`}>
       {preview.label}
@@ -132,7 +226,7 @@ function renderPreview(preview: AnnotationPreview) {
   );
 }
 
-function renderContentItems(items: AnnotationContentItem[], level = 1) {
+function renderContentItems(items: AnnotationContentItem[], level = 1, renderExample?: (key: string) => ReactNode) {
   return (
     <ol className={`${styles.annotationListText} ${level > 1 ? styles.annotationSubListText : ''}`}>
       {items.map((item, index) => (
@@ -145,19 +239,20 @@ function renderContentItems(items: AnnotationContentItem[], level = 1) {
               </span>
             ) : null}
           </span>
-          {item.children?.length ? renderContentItems(item.children, level + 1) : null}
+          {item.example && renderExample ? renderExample(item.example) : null}
+          {item.children?.length ? renderContentItems(item.children, level + 1, renderExample) : null}
         </li>
       ))}
     </ol>
   );
 }
 
-function renderSection(label: string, text?: string, items?: AnnotationContentItem[]) {
+function renderSection(label: string, text?: string, items?: AnnotationContentItem[], renderExample?: (key: string) => ReactNode) {
   if (!text && !items?.length) return null;
   return (
     <div className={styles.cardSection}>
       <span className={styles.cardSectionLabel}>{label}</span>
-      {items?.length ? renderContentItems(items) : null}
+      {items?.length ? renderContentItems(items, 1, renderExample) : null}
       {text ? <span className={styles.cardSectionValue}>{text}</span> : null}
     </div>
   );
@@ -198,12 +293,14 @@ export function RequirementAnnotationDrawer({
   pageLabel,
   onClose,
   onLocate,
+  renderExample,
 }: {
   visible: boolean;
   annotations: RequirementAnnotation[];
   pageLabel?: (page: string) => string;
   onClose: () => void;
   onLocate: (annotation: RequirementAnnotation) => void;
+  renderExample?: (key: string) => ReactNode;
 }) {
   const [activePage, setActivePage] = useState('全部');
   const pages = useMemo(
@@ -257,7 +354,7 @@ export function RequirementAnnotationDrawer({
                     <Badge className={styles.numberBadge} color="arcoblue" count={item.number} />
                     <div className={styles.cardTitle}>
                       <strong>{item.module}</strong>
-                      <span>{item.target}</span>
+                      {item.target ? <span>{item.target}</span> : null}
                     </div>
                     <Button
                       className={styles.locateButton}
@@ -267,11 +364,11 @@ export function RequirementAnnotationDrawer({
                       定位
                     </Button>
                   </div>
-                  {renderSection(item.ruleLabel || '规则', item.rule, item.ruleItems)}
-                  {renderSection(item.exceptionLabel || '边界/限制', item.exception, item.exceptionItems)}
-                  {renderSection('状态', item.state, item.stateItems)}
-                  {renderSection('恢复', item.recovery, item.recoveryItems)}
-                  {renderSection('验收', item.acceptance, item.acceptanceItems)}
+                  {renderSection(item.ruleLabel || '规则', item.rule, item.ruleItems, renderExample)}
+                  {renderSection(item.exceptionLabel || '边界/限制', item.exception, item.exceptionItems, renderExample)}
+                  {renderSection(item.stateLabel || '状态', item.state, item.stateItems, renderExample)}
+                  {renderSection(item.recoveryLabel || '恢复', item.recovery, item.recoveryItems, renderExample)}
+                  {renderSection('验收', item.acceptance, item.acceptanceItems, renderExample)}
                 </article>
               ))}
             </section>

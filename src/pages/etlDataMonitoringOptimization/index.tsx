@@ -24,7 +24,7 @@ import {
   IconCloseCircleFill,
   IconExclamationCircleFill,
   IconInfoCircle,
-  IconLeft,
+  IconInfoCircleFill,
   IconPauseCircleFill,
   IconPlus,
   IconRefresh,
@@ -33,12 +33,24 @@ import {
 import {
   aggregateTaskFinalStatus,
   classifyTaskFinalStatus,
+  isPlanTimedOut,
 } from './statusModel';
 import type {
   DateStatus,
   StageStatus,
   TaskStageFacts,
 } from './statusModel';
+import { mockExecutionDateRange, monitoringPlatformExamples } from './detailModel';
+import { DetailRowActions } from './DetailRowActions';
+import { DetailColumnSettings } from './DetailColumnSettings';
+import { DetailFilters, DetailHeading, defaultDetailFilter } from './DetailToolbar';
+import { normalizeDetailStatus } from './detailPresentation';
+import { detailRowSpans, filterMonitorDates, matchesPlanKeyword, showNoDataLabel } from './monitoringPresentation';
+import type { DetailStageField } from './detailPresentation';
+import { applyEffectiveAttempts, createBusinessDetailKey } from './retryConsistency';
+import type { EffectiveAttemptMap, RetryKind } from './retryConsistency';
+import { useRetrySimulation } from './useRetrySimulation';
+import type { RetryPhase, RetryableDetailRecord } from './useRetrySimulation';
 import styles from './index.module.less';
 
 const { TabPane } = Tabs;
@@ -47,20 +59,16 @@ type ViewDimension = 'store' | 'table';
 type DimensionScope = 'all' | 'custom';
 type StatusFilter = DateStatus;
 type IssueStage = '取数执行' | '数据入库' | '数据校验';
-type DetailSearchField = 'taskName' | 'storeName' | 'connectorName' | 'tableName';
-type DetailStatusFilterField = 'collectStatus' | 'importStatus' | 'validationStatus';
-type DetailStatusFilterValue = StageStatus;
 type StoreColumnKey =
   | 'channel'
   | 'platform'
   | 'storeName'
-  | 'fetchTimeRange'
   | 'relatedTasks'
   | `date:${string}`;
 type DetailColumnKey =
   | 'channel'
   | 'platform'
-  | 'bizDate'
+  | 'bizDateRange'
   | 'dataCycle'
   | 'tableName'
   | 'tableNameEn'
@@ -96,6 +104,7 @@ interface CustomViewDraft {
 }
 
 interface MonitorTaskResult extends TaskStageFacts {
+  collectNoData?: boolean;
   reason?: string;
   issueStage?: IssueStage;
   validationRule?: string;
@@ -130,10 +139,13 @@ interface TableDrilldownState {
 }
 
 interface StoreDrilldownRecord {
+  planElapsedMinutes?: number;
+  planTimeoutMinutes?: number;
+  collectNoData?: boolean;
   key: string;
   channel: string;
   platform: string;
-  bizDate: string;
+  bizDateRange: string;
   dataCycle: string;
   tableName: string;
   tableNameEn: string;
@@ -143,7 +155,9 @@ interface StoreDrilldownRecord {
   storageLocation: string;
   storageTableName: string;
   collectStatus: StageStatus;
+  collectErrorCode?: string;
   importStatus: StageStatus;
+  importErrorCode?: string;
   validationStatus: StageStatus;
   issueStage?: IssueStage;
   errorCode?: string;
@@ -152,6 +166,11 @@ interface StoreDrilldownRecord {
   actualImportTime: string;
   reason?: string;
 }
+
+type RetrySubmitter = (
+  record: RetryableDetailRecord,
+  retryKind: RetryKind,
+) => Promise<'accepted' | 'rejected'>;
 
 const storeOptions = [
   '内亲拼多多旗舰店',
@@ -230,6 +249,18 @@ const waitingTask = (reason: string): MonitorTaskResult => ({
   actualImportTime: '--',
 });
 
+const planTimeoutTask = (planTimeoutMinutes: number, planElapsedMinutes: number): MonitorTaskResult => ({
+  collectStatus: '失败',
+  importStatus: '无任务',
+  validationStatus: '无任务',
+  planTimeoutMinutes,
+  planElapsedMinutes,
+  issueStage: '取数执行',
+  reason: `计划运行超时：本次阈值 ${planTimeoutMinutes} 分钟，已运行 ${planElapsedMinutes} 分钟`,
+  durationSeconds: planElapsedMinutes * 60,
+  actualImportTime: '--',
+});
+
 const noTask = (reason: string): MonitorTaskResult => ({
   collectStatus: '无任务',
   importStatus: '无任务',
@@ -242,7 +273,7 @@ const noTask = (reason: string): MonitorTaskResult => ({
 const taskScenario = (primary: MonitorTaskResult): MonitorTaskResult[] => [
   primary,
   successTask(),
-  successTask('数据已入库，未开启表校验', '无任务'),
+  { ...successTask('本次取数成功，未生成数据文件', '无数据'), collectNoData: true },
 ];
 
 const noTaskScenario = (reason: string): MonitorTaskResult[] => [
@@ -292,12 +323,11 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-1',
     storeName: '内亲拼多多旗舰店',
-    channel: '电商平台',
-    platform: '拼多多',
+    ...monitoringPlatformExamples.拼多多,
     taskResults: {
       '2026-07-14': taskScenario(importErrorTask('2003', '存在映射关系不存在的字段')),
       '2026-07-13': taskScenario(successTask()),
-      '2026-07-12': taskScenario(waitingTask('任务运行中，等待平台文件生成')),
+      '2026-07-12': taskScenario(planTimeoutTask(300, 301)),
       '2026-07-11': taskScenario(successTask('数据已入库，未开启表校验', '无任务')),
       '2026-07-10': taskScenario(validationAbnormalTask('字段求和', '履约费用字段求和超出配置范围')),
       '2026-07-09': noTaskScenario('对应业务日期所选店铺无任务'),
@@ -307,8 +337,7 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-2',
     storeName: '永博京东旗舰店',
-    channel: '电商平台',
-    platform: '京东',
+    ...monitoringPlatformExamples.京东,
     taskResults: {
       '2026-07-14': taskScenario(validationAbnormalTask('字段非空', '结算金额字段存在空值')),
       '2026-07-13': taskScenario(successTask()),
@@ -322,14 +351,13 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-3',
     storeName: '好麦多抖音旗舰店',
-    channel: '内容电商',
-    platform: '抖音',
+    ...monitoringPlatformExamples.抖音,
     taskResults: {
       '2026-07-14': taskScenario(validationAbnormalTask('字段求和', '成交金额较前 7 日均值下降 92%')),
       '2026-07-13': taskScenario(successTask()),
       '2026-07-12': taskScenario(successTask()),
       '2026-07-11': taskScenario(successTask()),
-      '2026-07-10': taskScenario(waitingTask('任务运行中，包含等待重试')),
+      '2026-07-10': taskScenario(planTimeoutTask(60, 61)),
       '2026-07-09': taskScenario(successTask()),
       '2026-07-08': taskScenario(successTask()),
     },
@@ -337,8 +365,7 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-4',
     storeName: '蓝漂天猫旗舰店',
-    channel: '电商平台',
-    platform: '天猫',
+    ...monitoringPlatformExamples.天猫,
     taskResults: {
       '2026-07-14': taskScenario(successTask('数据已入库，未开启表校验', '无任务')),
       '2026-07-13': taskScenario(successTask()),
@@ -352,8 +379,7 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-5',
     storeName: '派蒙小红书店',
-    channel: '内容电商',
-    platform: '小红书',
+    ...monitoringPlatformExamples.小红书,
     taskResults: {
       '2026-07-14': taskScenario(waitingTask('任务运行中，平台报表仍在生成中')),
       '2026-07-13': taskScenario(successTask()),
@@ -367,8 +393,7 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-6',
     storeName: '森森淘宝旗舰店',
-    channel: '电商平台',
-    platform: '淘宝',
+    ...monitoringPlatformExamples.淘宝,
     taskResults: {
       '2026-07-14': taskScenario(waitingTask('任务运行中，等待入库完成')),
       '2026-07-13': taskScenario(successTask()),
@@ -382,8 +407,7 @@ const storeRecords: StoreMonitorRecord[] = [
   {
     key: 'store-7',
     storeName: '逐本唯品会专营店',
-    channel: '电商平台',
-    platform: '唯品会',
+    ...monitoringPlatformExamples.唯品会,
     taskResults: {
       '2026-07-14': taskScenario(successTask()),
       '2026-07-13': taskScenario(successTask()),
@@ -406,14 +430,11 @@ const tableDateColumns = [
   '2026-07-08',
 ];
 
-const dynamicFetchTimeRange = `${tableDateColumns[tableDateColumns.length - 1]} 至 ${tableDateColumns[0]}`;
-
 const storeColumnOptions: Array<{ key: StoreColumnKey; label: string; disabled?: boolean }> = [
   { key: 'channel', label: '平台类型' },
   { key: 'platform', label: '子平台' },
   { key: 'storeName', label: '店铺名称', disabled: true },
-  { key: 'fetchTimeRange', label: '动态取数时间范围' },
-  { key: 'relatedTasks', label: '关联任务', disabled: true },
+  { key: 'relatedTasks', label: '关联计划', disabled: true },
   ...tableDateColumns.map((date) => ({ key: `date:${date}` as StoreColumnKey, label: date })),
 ];
 
@@ -430,7 +451,7 @@ const tableRecords: TableMonitorRecord[] = [
     taskResults: {
       '2026-07-14': taskScenario(importErrorTask('2003', '存在映射关系不存在的字段')),
       '2026-07-13': taskScenario(successTask()),
-      '2026-07-12': taskScenario(waitingTask('任务运行中，等待平台文件生成')),
+      '2026-07-12': taskScenario(planTimeoutTask(300, 301)),
       '2026-07-11': taskScenario(successTask()),
       '2026-07-10': taskScenario(successTask()),
       '2026-07-09': taskScenario(successTask('数据已入库，未开启表校验', '无任务')),
@@ -484,7 +505,7 @@ const tableRecords: TableMonitorRecord[] = [
   },
 ];
 
-const statusFilterOptions: { label: string; value: StatusFilter }[] = [
+export const statusFilterOptions: { label: string; value: StatusFilter }[] = [
   { label: '失败', value: 'failed' },
   { label: '异常', value: 'abnormal' },
   { label: '等待', value: 'waiting' },
@@ -492,29 +513,8 @@ const statusFilterOptions: { label: string; value: StatusFilter }[] = [
   { label: '无任务', value: 'noTask' },
 ];
 
-const stageStatusFilterOptions: { label: StageStatus; value: StageStatus }[] = [
-  { label: '成功', value: '成功' },
-  { label: '失败', value: '失败' },
-  { label: '运行中', value: '运行中' },
-  { label: '等待', value: '等待' },
-  { label: '正常', value: '正常' },
-  { label: '异常', value: '异常' },
-  { label: '无数据', value: '无数据' },
-  { label: '无任务', value: '无任务' },
-];
 
-const detailSearchFieldOptions: { label: string; value: DetailSearchField }[] = [
-  { label: '任务名', value: 'taskName' },
-  { label: '店铺名', value: 'storeName' },
-  { label: '数据源名', value: 'connectorName' },
-  { label: '表名', value: 'tableName' },
-];
 
-const detailStatusFilterFieldOptions: { label: string; value: DetailStatusFilterField }[] = [
-  { label: '取数执行', value: 'collectStatus' },
-  { label: '数据入库', value: 'importStatus' },
-  { label: '数据校验', value: 'validationStatus' },
-];
 
 const dateStatusMeta: Record<DateStatus, { label: string; color: string; fallbackReason: string }> = {
   success: {
@@ -530,7 +530,7 @@ const dateStatusMeta: Record<DateStatus, { label: string; color: string; fallbac
   failed: {
     label: '失败',
     color: 'red',
-    fallbackReason: '平台侧/RPA 流程侧取数失败或数据入库失败',
+    fallbackReason: '取数执行失败、数据入库失败或计划运行超时',
   },
   waiting: {
     label: '等待',
@@ -637,23 +637,23 @@ const formatStageIssueDetail = ({
 };
 
 const statusHelpItems: Array<{ status: DateStatus; description: string }> = [
-  { status: 'failed', description: '取数错误码为 2xxx/3xxx，或数据入库失败' },
-  { status: 'abnormal', description: '取数错误码为 1xxx，或入库后表校验不通过' },
+  { status: 'failed', description: '数据入库失败、取数执行失败或计划运行超时' },
+  { status: 'abnormal', description: '入库后表校验不通过' },
   { status: 'waiting', description: '取数、重试、入库或校验尚未结束' },
-  { status: 'success', description: '成功入库，且表校验关闭或全部通过' },
-  { status: 'noTask', description: '全部明细均无实际任务' },
+  { status: 'success', description: '数据成功入库，表校验通过/无需校验/无数据' },
+  { status: 'noTask', description: '该日未执行任何取数并入库计划' },
 ];
 
-const detailColumnOptions: Array<{ key: DetailColumnKey; label: string; disabled?: boolean }> = [
+export const detailColumnOptions: Array<{ key: DetailColumnKey; label: string; disabled?: boolean }> = [
   { key: 'channel', label: '平台类型', disabled: true },
   { key: 'platform', label: '子平台', disabled: true },
-  { key: 'bizDate', label: '数据日期', disabled: true },
+  { key: 'bizDateRange', label: '数据日期', disabled: true },
   { key: 'dataCycle', label: '数据周期' },
   { key: 'tableName', label: '报表表名(中文)' },
   { key: 'tableNameEn', label: '报表表名(英文)' },
   { key: 'connectorName', label: '数据源' },
   { key: 'storeName', label: '店铺' },
-  { key: 'taskName', label: '关联任务名' },
+  { key: 'taskName', label: '关联计划' },
   { key: 'storageLocation', label: '存储位置' },
   { key: 'storageTableName', label: '存储表名称' },
   { key: 'collectStatus', label: '取数执行' },
@@ -665,9 +665,6 @@ const detailColumnOptions: Array<{ key: DetailColumnKey; label: string; disabled
   { key: 'operation', label: '操作', disabled: true },
 ];
 
-const fixedDetailColumnKeys = detailColumnOptions
-  .filter((option) => option.disabled)
-  .map((option) => option.key);
 
 const drilldownTableSamples = [
   { tableName: '订单履约费用明细', tableNameEn: 'order_fulfillment_fee_detail' },
@@ -680,13 +677,13 @@ const drilldownTableSamples = [
 ];
 
 const platformCodeMap: Record<string, string> = {
-  拼多多: 'pdd',
-  京东: 'jd',
-  抖音: 'douyin',
-  天猫: 'tmall',
-  小红书: 'red',
-  淘宝: 'tb',
-  唯品会: 'vip',
+  拼多多商家后台: 'pdd',
+  京东商家后台: 'jd',
+  抖店: 'douyin',
+  阿里妈妈: 'tmall',
+  聚光: 'red',
+  生意参谋: 'tb',
+  唯品会商家后台: 'vip',
 };
 
 const getTaskName = (platform: string, tableName: string) => `${platform}${tableName}采集`;
@@ -706,13 +703,8 @@ const getStoreRelatedTasks = (storeRecord: StoreMonitorRecord) => (
 );
 
 const getPlatformInfoByConnector = (connectorName: string) => {
-  const platform = Object.keys(platformCodeMap).find((item) => connectorName.includes(item)) || '拼多多';
-  const store = storeRecords.find((record) => record.platform === platform);
-
-  return {
-    platform,
-    channel: store?.channel || '电商平台',
-  };
+  const source = Object.keys(monitoringPlatformExamples).find((item) => connectorName.startsWith(`${item}-`));
+  return source ? monitoringPlatformExamples[source] : { channel: '—', platform: '—' };
 };
 
 const getTableRelatedStores = (tableRecord: TableMonitorRecord) => {
@@ -723,7 +715,7 @@ const getTableRelatedStores = (tableRecord: TableMonitorRecord) => {
 };
 
 const getTableRelatedTasks = (tableRecord: TableMonitorRecord) => (
-  getTableRelatedStores(tableRecord).map((store) => getTaskName(store.platform, tableRecord.tableName))
+  [getTaskName(getPlatformInfoByConnector(tableRecord.connectorName).platform, tableRecord.tableName)]
 );
 
 const getTaskReason = (taskResult: MonitorTaskResult) => (
@@ -741,6 +733,8 @@ const getDrilldownFinalStatus = (record: StoreDrilldownRecord) => (
     collectStatus: record.collectStatus,
     importStatus: record.importStatus,
     validationStatus: record.validationStatus,
+    planElapsedMinutes: record.planElapsedMinutes,
+    planTimeoutMinutes: record.planTimeoutMinutes,
     collectErrorCode: record.issueStage === '取数执行' ? record.errorCode : undefined,
     importErrorCode: record.issueStage === '数据入库' ? record.errorCode : undefined,
   })
@@ -753,29 +747,34 @@ const createStoreDrilldownRecords = (
   const taskResults = storeRecord.taskResults[date] || [];
   if (aggregateTaskFinalStatus(taskResults) === 'noTask') return [];
 
-  const compactDate = compactSameDateRange(date);
   const sampleTables = getStoreTaskSamples(storeRecord);
 
   return sampleTables.map((sample, index) => {
     const taskResult = taskResults[index] || successTask();
     const platformCode = platformCodeMap[storeRecord.platform] || 'platform';
     const tableNameEn = `${platformCode}_${sample.tableNameEn}`;
+    const taskName = getTaskName(storeRecord.platform, sample.tableName);
 
     return {
-      key: `${storeRecord.key}-${date}-${index}`,
+      key: createBusinessDetailKey({ date, storeName: storeRecord.storeName, tableName: sample.tableName, taskName }),
       channel: storeRecord.channel,
       platform: storeRecord.platform,
-      bizDate: compactDate,
+      bizDateRange: mockExecutionDateRange(date, index),
       dataCycle: '日',
       tableName: sample.tableName,
       tableNameEn,
       connectorName: `${storeRecord.platform}-经营数据`,
       storeName: storeRecord.storeName,
-      taskName: getTaskName(storeRecord.platform, sample.tableName),
+      taskName,
       storageLocation: '取数宝数据仓库 / ods',
       storageTableName: `ods_${tableNameEn}`,
       collectStatus: taskResult.collectStatus,
+      collectErrorCode: taskResult.collectErrorCode,
+      collectNoData: taskResult.collectNoData,
+      planElapsedMinutes: taskResult.planElapsedMinutes,
+      planTimeoutMinutes: taskResult.planTimeoutMinutes,
       importStatus: taskResult.importStatus,
+      importErrorCode: taskResult.importErrorCode,
       validationStatus: taskResult.validationStatus,
       issueStage: taskResult.issueStage,
       errorCode: getTaskErrorCode(taskResult),
@@ -794,31 +793,35 @@ const createTableDrilldownRecords = (
   const taskResults = tableRecord.taskResults[date] || [];
   if (aggregateTaskFinalStatus(taskResults) === 'noTask') return [];
 
-  const compactDate = compactSameDateRange(date);
   const relatedStores = getTableRelatedStores(tableRecord);
+  const sourcePlatform = getPlatformInfoByConnector(tableRecord.connectorName);
 
   return relatedStores.map((storeRecord, index) => {
     const taskResult = taskResults[index] || successTask();
-    const platformCode = platformCodeMap[storeRecord.platform] || 'platform';
-    const tableNameEn = tableRecord.tableNameEn.startsWith(`${platformCode}_`)
-      ? tableRecord.tableNameEn
-      : `${platformCode}_${tableRecord.tableNameEn}`;
+    const tableNameEn = tableRecord.tableNameEn;
+    const storeName = index === 0 ? storeRecord.storeName : `${sourcePlatform.channel}示例店铺 ${index + 1}`;
+    const taskName = getTaskName(sourcePlatform.platform, tableRecord.tableName);
 
     return {
-      key: `${tableRecord.key}-${date}-${storeRecord.key}-${index}`,
-      channel: storeRecord.channel,
-      platform: storeRecord.platform,
-      bizDate: compactDate,
+      key: createBusinessDetailKey({ date, storeName, tableName: tableRecord.tableName, taskName }),
+      channel: sourcePlatform.channel,
+      platform: sourcePlatform.platform,
+      bizDateRange: mockExecutionDateRange(date, index < 2 ? 0 : 1),
       dataCycle: '日',
       tableName: tableRecord.tableName,
       tableNameEn,
       connectorName: tableRecord.connectorName,
-      storeName: storeRecord.storeName,
-      taskName: getTaskName(storeRecord.platform, tableRecord.tableName),
+      storeName,
+      taskName,
       storageLocation: '取数宝数据仓库 / ods',
       storageTableName: `ods_${tableNameEn}`,
       collectStatus: taskResult.collectStatus,
+      collectErrorCode: taskResult.collectErrorCode,
+      collectNoData: taskResult.collectNoData,
+      planElapsedMinutes: taskResult.planElapsedMinutes,
+      planTimeoutMinutes: taskResult.planTimeoutMinutes,
       importStatus: taskResult.importStatus,
+      importErrorCode: taskResult.importErrorCode,
       validationStatus: taskResult.validationStatus,
       issueStage: taskResult.issueStage,
       errorCode: getTaskErrorCode(taskResult),
@@ -838,11 +841,11 @@ const getTableAggregatedStatus = (record: TableMonitorRecord, date: string) => (
   aggregateTaskFinalStatus(record.taskResults[date] || [])
 );
 
-const getAggregatedReason = (taskResults: MonitorTaskResult[], status: DateStatus) => (
+const getAggregatedReason = (taskResults: Array<TaskStageFacts & { reason?: string }>, status: DateStatus) => (
   taskResults.find((taskResult) => classifyTaskFinalStatus(taskResult) === status)?.reason
 );
 
-const getAggregatedStatusValue = (taskResults: MonitorTaskResult[]) => {
+const getAggregatedStatusValue = (taskResults: Array<TaskStageFacts & { reason?: string }>) => {
   const status = aggregateTaskFinalStatus(taskResults);
   return {
     status,
@@ -863,7 +866,7 @@ const getViewScopeLabel = (view: MonitorView) => {
   return view.selectedValues.length ? view.selectedValues.join('，') : '自定义';
 };
 
-function DateStatusCell({
+export function DateStatusCell({
   value,
   onClick,
   reasons,
@@ -931,37 +934,42 @@ function DateStatusCell({
   );
 }
 
-function StageStatusTag({
+export function StageStatusTag({
   status,
   reason,
+  stage,
+  noData,
 }: {
   status: StageStatus;
+  noData?: boolean;
   reason?: string;
+  stage?: DetailStageField;
 }) {
-  const icon = getStageStatusIcon(status);
+  const displayStatus = stage ? normalizeDetailStatus(stage, status) : status;
+  const icon = getStageStatusIcon(displayStatus as StageStatus);
   const tag = (
-    <Tag className={styles.statusTag} color={stageStatusColorMap[status]}>
+    <Tag className={styles.statusTag} color={stageStatusColorMap[displayStatus as StageStatus] || 'gray'}>
       {icon ? (
         <span className={styles.statusTagContent}>
           {icon}
-          <span>{status}</span>
+          <span>{displayStatus}</span>
         </span>
-      ) : status}
+      ) : displayStatus}
     </Tag>
   );
 
-  if (!reason) return tag;
-
   return (
-    <Tooltip content={reason}>
-      <span className={styles.statusTooltipTarget} title={reason}>
-        {tag}
-      </span>
-    </Tooltip>
+    <span className={styles.stageStatusWithDetail}>
+      {tag}
+      {showNoDataLabel(displayStatus, noData) ? <span className={styles.statusNoData}>无数据</span> : null}
+      {reason ? <Tooltip content={reason} trigger={['hover', 'focus']}>
+        <button type="button" className={styles.statusInfo} aria-label="查看错误码和原因"><IconInfoCircleFill /></button>
+      </Tooltip> : null}
+    </span>
   );
 }
 
-function StatusHelpContent() {
+export function StatusHelpContent() {
   return (
     <div className={styles.statusHelp}>
       {statusHelpItems.map((item) => {
@@ -1014,37 +1022,43 @@ function RelatedTasksCell({ tasks }: { tasks: string[] }) {
   );
 }
 
+export const storeMonitorColumnLabels = {
+  channel: '平台类型',
+  platform: '子平台',
+  storeName: '店铺名称',
+  relatedTasks: '关联计划',
+};
+
 function DrilldownDetailView({
+  dimension,
   title,
   date,
   records,
+  phases,
+  onRetry,
   emptyDescription,
   onBack,
 }: {
+  dimension: ViewDimension;
   title: string;
   date: string;
   records: StoreDrilldownRecord[];
+  phases: Record<string, RetryPhase>;
+  onRetry: (record: StoreDrilldownRecord, kind: 'collect' | 'import') => Promise<'accepted' | 'rejected'>;
   emptyDescription: string;
   onBack: () => void;
 }) {
+  const detailNoteId = dimension === 'store' ? 'ETL-4.2' : 'ETL-4.3';
   const [page, setPage] = useState(1);
-  const [statusFilterField, setStatusFilterField] = useState<DetailStatusFilterField>('collectStatus');
-  const [statusFilterValue, setStatusFilterValue] = useState<DetailStatusFilterValue>();
-  const [searchField, setSearchField] = useState<DetailSearchField>('taskName');
-  const [keyword, setKeyword] = useState('');
+  const [filters, setFilters] = useState(defaultDetailFilter);
+  const { searchField, keyword, stage: statusFilterField, status: statusFilterValue } = filters;
+  const [detailColumnOrder, setDetailColumnOrder] = useState<string[]>(detailColumnOptions.map(option => option.key));
   const [visibleDetailColumnKeys, setVisibleDetailColumnKeys] = useState<DetailColumnKey[]>(
     detailColumnOptions.map((option) => option.key),
   );
   const pageSize = 20;
-
-  const toggleDetailColumn = (columnKey: DetailColumnKey, checked: boolean) => {
-    if (fixedDetailColumnKeys.includes(columnKey)) return;
-
-    setVisibleDetailColumnKeys((current) => {
-      if (checked) return Array.from(new Set([...current, columnKey]));
-      return current.filter((key) => key !== columnKey);
-    });
-  };
+  const [detailChannel, setDetailChannel] = useState<string>();
+  const [detailPlatform, setDetailPlatform] = useState<string>();
 
   const filteredRecords = useMemo(() => {
     const normalizedKeyword = keyword.trim();
@@ -1063,46 +1077,19 @@ function DrilldownDetailView({
             return record.taskName.includes(normalizedKeyword);
         }
       })();
-      const matchStatus = !statusFilterValue || (() => {
-        switch (statusFilterField) {
-          case 'collectStatus':
-            return record.collectStatus === statusFilterValue;
-          case 'importStatus':
-            return record.importStatus === statusFilterValue;
-          case 'validationStatus':
-            return record.validationStatus === statusFilterValue;
-          default:
-            return false;
-        }
-      })();
+      const matchStatus = !statusFilterValue || normalizeDetailStatus(statusFilterField, record[statusFilterField]) === statusFilterValue;
 
       return (
         matchKeyword
+        && (!detailChannel || record.channel === detailChannel)
+        && (!detailPlatform || record.platform === detailPlatform)
         && matchStatus
       );
     });
-  }, [keyword, records, searchField, statusFilterField, statusFilterValue]);
+  }, [keyword, records, searchField, statusFilterField, statusFilterValue, detailChannel, detailPlatform]);
 
   const pagedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize);
   const compactDate = compactSameDateRange(date);
-  const detailStatusValueOptions = stageStatusFilterOptions;
-
-  const detailColumnDropdown = (
-    <div className={styles.columnSettingsPanel} onClick={(event) => event.stopPropagation()}>
-      <span className={styles.columnSettingsTitle}>列展示设置</span>
-      {detailColumnOptions.map((option) => (
-        <Checkbox
-          key={option.key}
-          checked={visibleDetailColumnKeys.includes(option.key)}
-          disabled={option.disabled}
-          onChange={(checked) => toggleDetailColumn(option.key, checked)}
-        >
-          {option.label}
-        </Checkbox>
-      ))}
-    </div>
-  );
-
   const allColumns: Array<ColumnProps<StoreDrilldownRecord> & { key: DetailColumnKey }> = [
     {
       key: 'channel',
@@ -1110,17 +1097,18 @@ function DrilldownDetailView({
       dataIndex: 'channel',
       width: 120,
     },
-    { key: 'platform', title: '子平台', dataIndex: 'platform', width: 120 },
-    { key: 'bizDate', title: '数据日期', dataIndex: 'bizDate', width: 120 },
+    { key: 'platform', title: '子平台', dataIndex: 'platform', width: 120, onHeaderCell: () => ({ 'data-note-id': 'ETL-4.8' }) },
+    { key: 'bizDateRange', title: '数据日期', dataIndex: 'bizDateRange', width: 220 },
     { key: 'dataCycle', title: '数据周期', dataIndex: 'dataCycle', width: 92 },
     { key: 'tableName', title: '报表表名(中文)', dataIndex: 'tableName', width: 180, ellipsis: true },
     { key: 'tableNameEn', title: '报表表名(英文)', dataIndex: 'tableNameEn', width: 200, ellipsis: true },
-    { key: 'connectorName', title: '数据源', dataIndex: 'connectorName', width: 180, ellipsis: true },
-    { key: 'storeName', title: '店铺', dataIndex: 'storeName', width: 180, ellipsis: true },
+    { key: 'connectorName', title: '数据源', dataIndex: 'connectorName', width: 180, ellipsis: true, onHeaderCell: () => ({ 'data-note-id': 'ETL-4.8' }) },
+    { key: 'storeName', title: '店铺', dataIndex: 'storeName', width: 180, ellipsis: true, onHeaderCell: () => ({ 'data-note-id': 'ETL-4.8' }) },
     {
       key: 'taskName',
-      title: '关联任务名',
+      title: '关联计划',
       dataIndex: 'taskName',
+      onHeaderCell: () => ({ 'data-note-id': 'ETL-4.8' }),
       width: 210,
       ellipsis: true,
       render: (taskName: string) => (
@@ -1140,12 +1128,11 @@ function DrilldownDetailView({
       key: 'collectStatus',
       title: '取数执行',
       dataIndex: 'collectStatus',
-      width: 132,
-      onHeaderCell: () => ({ 'data-note-id': 'ETL-4.2' }),
+      width: 160,
       render: (status: StageStatus, record) => (
-        <div className={styles.annotationStatusCell} data-note-id="ETL-4.2">
+        <div className={styles.detailStatusCell}>
           <StageStatusTag
-            status={status}
+            status={status} stage="collectStatus" noData={record.collectNoData}
             reason={status === '失败' && record.issueStage === '取数执行'
               ? formatStageIssueDetail(record)
               : undefined}
@@ -1158,11 +1145,10 @@ function DrilldownDetailView({
       title: '数据入库',
       dataIndex: 'importStatus',
       width: 132,
-      onHeaderCell: () => ({ 'data-note-id': 'ETL-4.2' }),
       render: (status: StageStatus, record) => (
-        <div className={styles.annotationStatusCell} data-note-id="ETL-4.2">
+        <div className={styles.detailStatusCell}>
           <StageStatusTag
-            status={status}
+            status={status} stage="importStatus"
             reason={status === '失败' && record.issueStage === '数据入库'
               ? formatStageIssueDetail(record)
               : undefined}
@@ -1175,11 +1161,10 @@ function DrilldownDetailView({
       title: '数据校验',
       dataIndex: 'validationStatus',
       width: 132,
-      onHeaderCell: () => ({ 'data-note-id': 'ETL-4.2' }),
       render: (status: StageStatus, record) => (
-        <div className={styles.annotationStatusCell} data-note-id="ETL-4.2">
+        <div className={styles.detailStatusCell}>
           <StageStatusTag
-            status={status}
+            status={status} stage="validationStatus"
             reason={status === '异常' && record.issueStage === '数据校验'
               ? formatStageIssueDetail(record)
               : undefined}
@@ -1194,89 +1179,40 @@ function DrilldownDetailView({
       key: 'operation',
       title: '操作',
       dataIndex: 'operation',
-      width: 96,
+      width: 156,
       fixed: 'right',
-      align: 'center',
-      render: () => (
-        <Button
-          className={styles.logButton}
-          type="text"
-          size="mini"
-          onClick={() => Message.info('打开任务日志')}
-        >
-          日志
-        </Button>
-      ),
+      align: 'left',
+      onHeaderCell: () => ({ 'data-note-id': 'ETL-4.7' }),
+      render: (_: unknown, record) => <DetailRowActions key={record.key} record={record} phase={phases[record.key]} onRetry={(detail, kind) => onRetry(detail as StoreDrilldownRecord, kind)} />,
     },
   ];
 
-  const columns = allColumns.filter((column) => visibleDetailColumnKeys.includes(column.key));
+  const columns = detailColumnOrder
+    .map(key => allColumns.find(column => column.key === key)!)
+    .filter(column => visibleDetailColumnKeys.includes(column.key))
+    .map(column => {
+      const spans = dimension === 'table' ? detailRowSpans(pagedRecords, column.key) : [];
+      const platformField = column.key === 'channel' || column.key === 'platform' ? column.key : undefined;
+      return { ...column, align: 'left' as const,
+        ...(dimension === 'table' ? { onCell: (_: StoreDrilldownRecord, index: number) => ({ rowSpan: spans[index] }) } : {}),
+        ...(platformField ? {
+          filters: Array.from(new Set(records.filter(row => platformField === 'channel' || !detailChannel || row.channel === detailChannel).map(row => row[platformField]))).map(value => ({ text: value, value })),
+          filterMultiple: false,
+          filteredValue: (platformField === 'channel' ? detailChannel : detailPlatform) ? [platformField === 'channel' ? detailChannel! : detailPlatform!] : [],
+        } : {}),
+      };
+    });
 
   return (
     <div className={styles.monitorView}>
       <div className={styles.detailToolbar}>
-        <div className={styles.detailTitle}>
-          <Button
-            className={styles.backButton}
-            type="text"
-            icon={<IconLeft />}
-            onClick={onBack}
-          >
-            返回
-          </Button>
-          <span>{title}</span>
-          <Tag className={styles.statusTag} color="arcoblue">{compactDate}</Tag>
-        </div>
-        <div className={styles.detailFilters}>
-          <Input.Group compact className={`${styles.detailSearchGroup} qsb-arco-composite-search`}>
-            <Select
-              className={styles.keywordFieldSelect}
-              value={searchField}
-              options={detailSearchFieldOptions}
-              onChange={(value) => {
-                setSearchField(value as DetailSearchField);
-                setPage(1);
-              }}
-            />
-            <Input.Search
-              className={styles.keywordSearch}
-              allowClear
-              searchButton={false}
-              placeholder="请输入搜索内容"
-              value={keyword}
-              onChange={(value) => { setKeyword(value); setPage(1); }}
-              onSearch={(value) => { setKeyword(value); setPage(1); }}
-            />
-          </Input.Group>
-          <Input.Group compact className={styles.detailStatusFilterGroup}>
-            <Select
-              className={styles.detailStatusFieldSelect}
-              value={statusFilterField}
-              options={detailStatusFilterFieldOptions}
-              onChange={(value) => {
-                setStatusFilterField(value as DetailStatusFilterField);
-                setStatusFilterValue(undefined);
-                setPage(1);
-              }}
-            />
-            <Select
-              allowClear
-              className={styles.detailStatusValueSelect}
-              placeholder="请选择状态"
-              value={statusFilterValue}
-              options={detailStatusValueOptions}
-              onChange={(value) => { setStatusFilterValue(value); setPage(1); }}
-            />
-          </Input.Group>
-        </div>
+        <DetailHeading title={title} date={compactDate} onBack={onBack} noteId="ETL-4.5" />
+        <DetailFilters value={filters} noteId="ETL-4.4" onChange={value => { setFilters(value); setPage(1); }} />
         <div className={styles.toolbarActions}>
-          <Dropdown droplist={detailColumnDropdown} position="bl" trigger="click">
-            <Button
-              className={styles.iconButton}
-              aria-label="列设置"
-              icon={<IconSettings />}
-            />
-          </Dropdown>
+          <DetailColumnSettings
+            noteId="ETL-4.6" options={detailColumnOptions} order={detailColumnOrder} visible={visibleDetailColumnKeys}
+            onOrderChange={setDetailColumnOrder} onVisibleChange={keys => setVisibleDetailColumnKeys(keys as DetailColumnKey[])}
+          />
           <Tooltip content="刷新">
             <Button
               className={styles.iconButton}
@@ -1288,16 +1224,24 @@ function DrilldownDetailView({
         </div>
       </div>
 
-      <Table
-        className={styles.table}
-        rowKey="key"
-        columns={columns}
-        data={pagedRecords}
-        pagination={false}
-        borderCell
-        scroll={{ x: 2664, y: 'calc(100vh - 372px)' }}
-        noDataElement={<Empty description={emptyDescription} />}
-      />
+      <div data-note-id={detailNoteId}>
+        <Table
+          className={styles.table}
+          rowKey="key"
+          columns={columns}
+          data={pagedRecords}
+          onChange={(_, __, filters) => {
+            const channel = filters.channel?.[0];
+            setDetailChannel(channel);
+            setDetailPlatform(channel !== detailChannel ? undefined : filters.platform?.[0]);
+            setPage(1);
+          }}
+          pagination={false}
+          borderCell
+          scroll={{ x: columns.reduce((total, column) => total + Number(column.width || 0), 0), y: 'calc(100vh - 372px)' }}
+          noDataElement={<Empty description={emptyDescription} />}
+        />
+      </div>
 
       <div className={styles.pageFooter}>
         <span>共{filteredRecords.length}条</span>
@@ -1313,16 +1257,18 @@ function DrilldownDetailView({
   );
 }
 
-function ViewTabs({
+export function ViewTabs({
   views,
   activeViewId,
   onChange,
   onClose,
+  noteId,
 }: {
   views: MonitorView[];
   activeViewId: string;
   onChange: (id: string) => void;
   onClose: (id: string) => void;
+  noteId?: string;
 }) {
   const renderClosableTitle = (view: MonitorView) => (
     <span className={styles.tabTitle}>
@@ -1338,6 +1284,7 @@ function ViewTabs({
   );
 
   return (
+    <div data-note-id={noteId}>
     <Tabs
       activeTab={activeViewId}
       className={styles.viewTabs}
@@ -1360,6 +1307,7 @@ function ViewTabs({
         />
       ))}
     </Tabs>
+    </div>
   );
 }
 
@@ -1396,10 +1344,9 @@ function ViewList({
         </Button>
       </div>
       <div className={styles.viewGrid}>
-        {filteredViews.map((view, index) => (
+        {filteredViews.map((view) => (
           <button
             className={styles.viewCard}
-            data-note-id={index === 0 ? 'ETL-1.1' : undefined}
             key={view.id}
             type="button"
             onClick={() => onOpen(view.id)}
@@ -1517,10 +1464,19 @@ function CustomViewModal({
 function StoreMonitoringView({
   view,
   detailRequest,
+  attempts,
+  phases,
+  submitRetry,
 }: {
   view: MonitorView;
   detailRequest?: StoreDrilldownState;
+  attempts: EffectiveAttemptMap;
+  phases: Record<string, RetryPhase>;
+  submitRetry: RetrySubmitter;
 }) {
+  const [searchField, setSearchField] = useState<'storeName' | 'planName'>('storeName');
+  const [dateRange, setDateRange] = useState<string[]>([]);
+  const visibleDates = filterMonitorDates(tableDateColumns, dateRange);
   const [storeKeyword, setStoreKeyword] = useState('');
   const [platformPath, setPlatformPath] = useState<string[]>();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>();
@@ -1534,6 +1490,14 @@ function StoreMonitoringView({
   useEffect(() => {
     if (detailRequest) setDrilldown(detailRequest);
   }, [detailRequest]);
+
+  const currentStoreDetails = (record: StoreMonitorRecord, date: string) => (
+    applyEffectiveAttempts(createStoreDrilldownRecords(record, date), attempts).map((detail) => (
+      detail.lifecycle === 'completed' && getDrilldownFinalStatus(detail) === 'success'
+        ? { ...detail, collectErrorCode: undefined, importErrorCode: undefined, issueStage: undefined, errorCode: undefined, reason: undefined }
+        : detail
+    ))
+  );
 
   const platformOptions = useMemo(() => (
     Array.from(new Set(storeRecords.map((record) => record.channel))).map((channel) => ({
@@ -1553,13 +1517,13 @@ function StoreMonitoringView({
     const [channel, platform] = platformPath || [];
 
     const matchScope = view.scope === 'all' || view.selectedValues.includes(record.storeName);
-    const matchStore = !normalizedKeyword || record.storeName.includes(normalizedKeyword);
+    const matchStore = searchField === 'planName' ? matchesPlanKeyword(getStoreRelatedTasks(record), normalizedKeyword) : !normalizedKeyword || record.storeName.includes(normalizedKeyword);
     const matchPlatform = (!channel || record.channel === channel) && (!platform || record.platform === platform);
     const matchStatus = !statusFilter
-      || tableDateColumns.some((date) => getStoreAggregatedStatus(record, date) === statusFilter);
+      || visibleDates.some((date) => aggregateTaskFinalStatus(currentStoreDetails(record, date)) === statusFilter);
 
-    return matchScope && matchStore && matchPlatform && matchStatus;
-  }), [platformPath, statusFilter, storeKeyword, view]);
+    return visibleDates.length > 0 && matchScope && matchStore && matchPlatform && matchStatus;
+  }), [attempts, platformPath, statusFilter, storeKeyword, view, searchField, dateRange]);
 
   const pagedRecords = useMemo(
     () => filteredRecords.slice((page - 1) * pageSize, page * pageSize),
@@ -1567,18 +1531,18 @@ function StoreMonitoringView({
   );
 
   const getDateIssueReasons = (record: StoreMonitorRecord, date: string) => {
-    const taskResults = record.taskResults[date] || [];
-    const aggregatedStatus = aggregateTaskFinalStatus(taskResults);
+    const currentDetails = currentStoreDetails(record, date);
+    const aggregatedStatus = aggregateTaskFinalStatus(currentDetails);
     if (aggregatedStatus === 'success' || aggregatedStatus === 'waiting' || aggregatedStatus === 'noTask') {
       return undefined;
     }
 
-    const reasons = createStoreDrilldownRecords(record, date)
+    const reasons = currentDetails
       .filter((detail) => ['failed', 'abnormal'].includes(getDrilldownFinalStatus(detail)))
-      .map((detail) => `${detail.tableName}｜${formatIssueSummary({
+      .map((detail) => `${detail.tableName}｜${isPlanTimedOut(detail) ? `${detail.taskName}｜` : ''}${formatIssueSummary({
         issueStage: detail.issueStage,
         errorCode: detail.errorCode,
-        reason: detail.reason || getAggregatedReason(taskResults, aggregatedStatus) || dateStatusMeta[aggregatedStatus].fallbackReason,
+        reason: detail.reason || getAggregatedReason(currentDetails, aggregatedStatus) || dateStatusMeta[aggregatedStatus].fallbackReason,
       })}`);
 
     return Array.from(new Set(reasons));
@@ -1588,7 +1552,7 @@ function StoreMonitoringView({
     ? storeRecords.find((record) => record.storeName === drilldown.storeName)
     : undefined;
   const drilldownRecords = drilldownStore && drilldown
-    ? createStoreDrilldownRecords(drilldownStore, drilldown.date)
+    ? currentStoreDetails(drilldownStore, drilldown.date)
     : [];
 
   const toggleStoreColumn = (columnKey: StoreColumnKey, checked: boolean) => {
@@ -1619,54 +1583,46 @@ function StoreMonitoringView({
   const allColumns: Array<ColumnProps<StoreMonitorRecord> & { key: StoreColumnKey }> = [
     {
       key: 'channel',
-      title: '平台类型',
+      title: storeMonitorColumnLabels.channel,
       dataIndex: 'channel',
       width: 128,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-2.1' }),
     },
     {
       key: 'platform',
-      title: '子平台',
+      title: storeMonitorColumnLabels.platform,
       dataIndex: 'platform',
       width: 120,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-2.1' }),
     },
     {
       key: 'storeName',
-      title: '店铺名称',
+      title: storeMonitorColumnLabels.storeName,
       dataIndex: 'storeName',
       width: 180,
       ellipsis: true,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-2.1' }),
     },
     {
-      key: 'fetchTimeRange',
-      title: '动态取数时间范围',
-      dataIndex: 'fetchTimeRange',
-      width: 220,
-      onHeaderCell: () => ({ 'data-note-id': 'ETL-2.1' }),
-      render: () => dynamicFetchTimeRange,
-    },
-    {
       key: 'relatedTasks',
-      title: '关联任务',
+      title: storeMonitorColumnLabels.relatedTasks,
       dataIndex: 'relatedTasks',
       width: 260,
       ellipsis: true,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-2.1' }),
       render: (_: unknown, record) => <RelatedTasksCell tasks={getStoreRelatedTasks(record)} />,
     },
-    ...tableDateColumns.map((date) => ({
+    ...visibleDates.map((date) => ({
       key: `date:${date}` as StoreColumnKey,
       title: date,
       dataIndex: date,
-      width: 132,
-      align: 'center' as const,
+      width: 164,
+      align: 'left' as const,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-2.3' }),
       render: (_: unknown, record: StoreMonitorRecord) => (
         <div className={styles.annotationStatusCell} data-note-id="ETL-2.3">
           <DateStatusCell
-            value={getAggregatedStatusValue(record.taskResults[date] || [])}
+            value={getAggregatedStatusValue(currentStoreDetails(record, date))}
             reasons={getDateIssueReasons(record, date)}
             onClick={() => {
               setDrilldown({ storeName: record.storeName, date });
@@ -1681,9 +1637,12 @@ function StoreMonitoringView({
   if (drilldown) {
     return (
       <DrilldownDetailView
+        dimension="store"
         title={drilldown.storeName}
         date={drilldown.date}
         records={drilldownRecords}
+        phases={phases}
+        onRetry={submitRetry}
         emptyDescription="该店铺在所选业务日期暂无任务"
         onBack={() => setDrilldown(undefined)}
       />
@@ -1693,7 +1652,9 @@ function StoreMonitoringView({
   return (
     <div className={styles.monitorView}>
       <div className={styles.toolbar}>
-        <div className={styles.filters}>
+        <div className={styles.filters} data-note-id="ETL-2.4">
+          <DatePicker.RangePicker allowClear className={styles.dateRangeWide} format="YYYY-MM-DD" placeholder={['开始日期', '结束日期']} value={dateRange}
+            onChange={value => { setDateRange(value); setPage(1); }} />
           <Cascader
             allowClear
             className={styles.platformCascader}
@@ -1709,36 +1670,39 @@ function StoreMonitoringView({
           <Input.Group compact className={`${styles.keywordSearchGroup} qsb-arco-composite-search`}>
             <Select
               className={styles.keywordFieldSelect}
-              value="storeName"
-              options={[{ label: '店铺名称', value: 'storeName' }]}
+              value={searchField}
+              onChange={value => { setSearchField(value); setPage(1); }}
+              options={[{ label: '店铺名称', value: 'storeName' }, { label: '计划名称', value: 'planName' }]}
             />
             <Input.Search
               className={styles.keywordSearch}
               allowClear
               searchButton={false}
-              placeholder="请输入店铺名称"
+              placeholder={searchField === 'planName' ? '请输入计划名称' : '请输入店铺名称'}
               value={storeKeyword}
               onChange={(value) => { setStoreKeyword(value); setPage(1); }}
               onSearch={(value) => { setStoreKeyword(value); setPage(1); }}
             />
           </Input.Group>
-          <Tooltip content="刷新">
-            <Button
-              className={styles.iconButton}
-              data-note-id="ETL-2.2"
-              aria-label="刷新"
-              icon={<IconRefresh />}
-              onClick={() => Message.success('数据监控已刷新')}
+          <div className={styles.statusRefreshGroup}>
+            <Select
+              allowClear
+              className={styles.statusSelect}
+              placeholder="状态筛选"
+              value={statusFilter}
+              options={statusFilterOptions}
+              onChange={(value) => { setStatusFilter(value); setPage(1); }}
             />
-          </Tooltip>
-          <Select
-            allowClear
-            className={styles.statusSelect}
-            placeholder="状态筛选"
-            value={statusFilter}
-            options={statusFilterOptions}
-            onChange={(value) => { setStatusFilter(value); setPage(1); }}
-          />
+            <Tooltip content="刷新">
+              <Button
+                className={styles.iconButton}
+                data-note-id="ETL-2.2"
+                aria-label="刷新"
+                icon={<IconRefresh />}
+                onClick={() => Message.success('数据监控已刷新')}
+              />
+            </Tooltip>
+          </div>
         </div>
         <div className={styles.toolbarActions}>
           <Dropdown droplist={storeColumnDropdown} position="bl" trigger="click">
@@ -1766,7 +1730,7 @@ function StoreMonitoringView({
         data={pagedRecords}
         pagination={false}
         borderCell
-        scroll={{ x: 1832, y: 'calc(100vh - 372px)' }}
+        scroll={{ x: 688 + visibleDates.length * 164, y: 'calc(100vh - 372px)' }}
         noDataElement={<Empty description="暂无符合条件的店铺监控记录" />}
       />
 
@@ -1787,10 +1751,19 @@ function StoreMonitoringView({
 function TableMonitoringView({
   view,
   detailRequest,
+  attempts,
+  phases,
+  submitRetry,
 }: {
   view: MonitorView;
   detailRequest?: TableDrilldownState;
+  attempts: EffectiveAttemptMap;
+  phases: Record<string, RetryPhase>;
+  submitRetry: RetrySubmitter;
 }) {
+  const [searchField, setSearchField] = useState<'tableName' | 'planName'>('tableName');
+  const [dateRange, setDateRange] = useState<string[]>([]);
+  const visibleDates = filterMonitorDates(tableDateColumns, dateRange);
   const [tableKeyword, setTableKeyword] = useState('');
   const [connectorKeyword, setConnectorKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>();
@@ -1802,33 +1775,39 @@ function TableMonitoringView({
     if (detailRequest) setDrilldown(detailRequest);
   }, [detailRequest]);
 
+  const currentTableDetails = (record: TableMonitorRecord, date: string) => (
+    applyEffectiveAttempts(createTableDrilldownRecords(record, date), attempts).map((detail) => (
+      detail.lifecycle === 'completed' && getDrilldownFinalStatus(detail) === 'success'
+        ? { ...detail, collectErrorCode: undefined, importErrorCode: undefined, issueStage: undefined, errorCode: undefined, reason: undefined }
+        : detail
+    ))
+  );
+
   const filteredRecords = useMemo(() => tableRecords.filter((record) => {
     const matchScope = view.scope === 'all' || view.selectedValues.includes(record.tableName);
-    const matchTable = !tableKeyword.trim()
-      || record.tableName.includes(tableKeyword.trim())
-      || record.tableNameEn.includes(tableKeyword.trim());
+    const matchTable = searchField === 'planName' ? matchesPlanKeyword(getTableRelatedTasks(record), tableKeyword) : !tableKeyword.trim() || record.tableName.includes(tableKeyword.trim()) || record.tableNameEn.includes(tableKeyword.trim());
     const matchConnector = !connectorKeyword.trim() || record.connectorName.includes(connectorKeyword.trim());
     const matchStatus = !statusFilter
-      || tableDateColumns.some((date) => getTableAggregatedStatus(record, date) === statusFilter);
+      || visibleDates.some((date) => aggregateTaskFinalStatus(currentTableDetails(record, date)) === statusFilter);
 
-    return matchScope && matchTable && matchConnector && matchStatus;
-  }), [connectorKeyword, statusFilter, tableKeyword, view]);
+    return visibleDates.length > 0 && matchScope && matchTable && matchConnector && matchStatus;
+  }), [attempts, connectorKeyword, statusFilter, tableKeyword, view, searchField, dateRange]);
 
   const pagedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize);
 
   const getDateIssueReasons = (record: TableMonitorRecord, date: string) => {
-    const taskResults = record.taskResults[date] || [];
-    const aggregatedStatus = aggregateTaskFinalStatus(taskResults);
+    const currentDetails = currentTableDetails(record, date);
+    const aggregatedStatus = aggregateTaskFinalStatus(currentDetails);
     if (aggregatedStatus === 'success' || aggregatedStatus === 'waiting' || aggregatedStatus === 'noTask') {
       return undefined;
     }
 
-    const reasons = createTableDrilldownRecords(record, date)
+    const reasons = currentDetails
       .filter((detail) => ['failed', 'abnormal'].includes(getDrilldownFinalStatus(detail)))
-      .map((detail) => `${detail.storeName}｜${formatIssueSummary({
+      .map((detail) => `${detail.storeName}｜${isPlanTimedOut(detail) ? `${detail.taskName}｜` : ''}${formatIssueSummary({
         issueStage: detail.issueStage,
         errorCode: detail.errorCode,
-        reason: detail.reason || getAggregatedReason(taskResults, aggregatedStatus) || dateStatusMeta[aggregatedStatus].fallbackReason,
+        reason: detail.reason || getAggregatedReason(currentDetails, aggregatedStatus) || dateStatusMeta[aggregatedStatus].fallbackReason,
       })}`);
 
     return Array.from(new Set(reasons));
@@ -1838,7 +1817,7 @@ function TableMonitoringView({
     ? tableRecords.find((record) => record.key === drilldown.tableKey)
     : undefined;
   const drilldownRecords = drilldownTable && drilldown
-    ? createTableDrilldownRecords(drilldownTable, drilldown.date)
+    ? currentTableDetails(drilldownTable, drilldown.date)
     : [];
 
   const columns: ColumnProps<TableMonitorRecord>[] = [
@@ -1852,22 +1831,22 @@ function TableMonitoringView({
     { title: '表英文名称', dataIndex: 'tableNameEn', width: 220, ellipsis: true, fixed: 'left' },
     { title: '数据源', dataIndex: 'connectorName', width: 250, ellipsis: true, fixed: 'left' },
     {
-      title: '关联任务',
+      title: '关联计划',
       dataIndex: 'relatedTasks',
       width: 260,
       ellipsis: true,
       render: (_: unknown, record) => <RelatedTasksCell tasks={getTableRelatedTasks(record)} />,
     },
-    ...tableDateColumns.map((date) => ({
+    ...visibleDates.map((date) => ({
       title: date,
       dataIndex: date,
-      width: 132,
-      align: 'center' as const,
+      width: 164,
+      align: 'left' as const,
       onHeaderCell: () => ({ 'data-note-id': 'ETL-3.3' }),
       render: (_: unknown, record: TableMonitorRecord) => (
         <div className={styles.annotationStatusCell} data-note-id="ETL-3.3">
           <DateStatusCell
-            value={getAggregatedStatusValue(record.taskResults[date] || [])}
+            value={getAggregatedStatusValue(currentTableDetails(record, date))}
             reasons={getDateIssueReasons(record, date)}
             onClick={() => setDrilldown({ tableKey: record.key, date })}
           />
@@ -1879,9 +1858,12 @@ function TableMonitoringView({
   if (drilldown && drilldownTable) {
     return (
       <DrilldownDetailView
+        dimension="table"
         title={drilldownTable.tableName}
         date={drilldown.date}
         records={drilldownRecords}
+        phases={phases}
+        onRetry={submitRetry}
         emptyDescription="该数据表在所选业务日期暂无任务"
         onBack={() => setDrilldown(undefined)}
       />
@@ -1891,24 +1873,26 @@ function TableMonitoringView({
   return (
     <div className={styles.monitorView}>
       <div className={styles.toolbar}>
-        <div className={styles.filters}>
+        <div className={styles.filters} data-note-id="ETL-3.4">
           <DatePicker.RangePicker
             allowClear
             className={styles.dateRangeWide}
             format="YYYY-MM-DD"
             placeholder={['开始日期', '结束日期']}
+            value={dateRange} onChange={value => { setDateRange(value); setPage(1); }}
           />
           <Input.Group compact className={`${styles.keywordSearchGroup} qsb-arco-composite-search`}>
             <Select
               className={styles.keywordFieldSelect}
-              value="tableName"
-              options={[{ label: '表名称', value: 'tableName' }]}
+              value={searchField}
+              onChange={value => { setSearchField(value); setPage(1); }}
+              options={[{ label: '表名称', value: 'tableName' }, { label: '计划名称', value: 'planName' }]}
             />
             <Input.Search
               className={styles.keywordSearch}
               allowClear
               searchButton={false}
-              placeholder="请输入表中文/表英文"
+              placeholder={searchField === 'planName' ? '请输入计划名称' : '请输入表中文/表英文'}
               value={tableKeyword}
               onChange={(value) => { setTableKeyword(value); setPage(1); }}
               onSearch={(value) => { setTableKeyword(value); setPage(1); }}
@@ -1923,24 +1907,26 @@ function TableMonitoringView({
             onChange={(value) => { setConnectorKeyword(value); setPage(1); }}
             onSearch={(value) => { setConnectorKeyword(value); setPage(1); }}
           />
-          <Select
-            allowClear
-            className={styles.statusSelect}
-            placeholder="状态筛选"
-            value={statusFilter}
-            options={statusFilterOptions}
-            onChange={(value) => { setStatusFilter(value); setPage(1); }}
-          />
+          <div className={styles.statusRefreshGroup}>
+            <Select
+              allowClear
+              className={styles.statusSelect}
+              placeholder="状态筛选"
+              value={statusFilter}
+              options={statusFilterOptions}
+              onChange={(value) => { setStatusFilter(value); setPage(1); }}
+            />
+            <Tooltip content="刷新">
+              <Button
+                className={styles.iconButton}
+                aria-label="刷新"
+                icon={<IconRefresh />}
+                onClick={() => Message.success('数据监控已刷新')}
+              />
+            </Tooltip>
+          </div>
         </div>
         <div className={styles.toolbarActions}>
-          <Tooltip content="刷新">
-            <Button
-              className={styles.iconButton}
-              aria-label="刷新"
-              icon={<IconRefresh />}
-              onClick={() => Message.success('数据监控已刷新')}
-            />
-          </Tooltip>
           <Tooltip content={<StatusHelpContent />} position="br">
             <Button
               className={styles.iconButton}
@@ -1959,7 +1945,7 @@ function TableMonitoringView({
         data={pagedRecords}
         pagination={false}
         borderCell
-        scroll={{ x: 1884, y: 'calc(100vh - 372px)' }}
+        scroll={{ x: 960 + visibleDates.length * 164, y: 'calc(100vh - 372px)' }}
         noDataElement={<Empty description="暂无符合条件的数据表监控记录" />}
       />
 
@@ -1981,10 +1967,12 @@ export default function EtlDataMonitoringOptimization() {
   const [views, setViews] = useState<MonitorView[]>(initialViews);
   const [openViewIds, setOpenViewIds] = useState<string[]>(initialViews.map((view) => view.id));
   const [activeViewId, setActiveViewId] = useState('list');
+  const [annotationNavigationId, setAnnotationNavigationId] = useState(0);
   const [storeDetailRequest, setStoreDetailRequest] = useState<StoreDrilldownState>();
   const [tableDetailRequest, setTableDetailRequest] = useState<TableDrilldownState>();
   const [draft, setDraft] = useState<CustomViewDraft>(emptyDraft);
   const [modalVisible, setModalVisible] = useState(false);
+  const { attempts, phases, submitRetry } = useRetrySimulation();
 
   const activeView = views.find((view) => view.id === activeViewId);
   const openViews = openViewIds
@@ -2000,6 +1988,9 @@ export default function EtlDataMonitoringOptimization() {
     const openViewById = (id: string) => {
       setOpenViewIds((current) => (current.includes(id) ? current : [...current, id]));
       setActiveViewId(id);
+      setStoreDetailRequest(undefined);
+      setTableDetailRequest(undefined);
+      setAnnotationNavigationId((current) => current + 1);
     };
     const openViewList = () => setActiveViewId('list');
     const openStoreView = () => openViewById('all-store');
@@ -2065,6 +2056,7 @@ export default function EtlDataMonitoringOptimization() {
     <div className={styles.page}>
       <div className={styles.tablePanel}>
         <ViewTabs
+          noteId="ETL-1.2"
           views={openViews}
           activeViewId={activeViewId}
           onChange={setActiveViewId}
@@ -2075,10 +2067,10 @@ export default function EtlDataMonitoringOptimization() {
             <ViewList views={views} onCreate={createCustomView} onOpen={openView} />
           ) : null}
           {activeView && activeView.dimension === 'store' ? (
-            <StoreMonitoringView key={activeView.id} view={activeView} detailRequest={storeDetailRequest} />
+            <StoreMonitoringView key={`${activeView.id}:${annotationNavigationId}`} view={activeView} detailRequest={storeDetailRequest} attempts={attempts} phases={phases} submitRetry={submitRetry} />
           ) : null}
           {activeView && activeView.dimension === 'table' ? (
-            <TableMonitoringView key={activeView.id} view={activeView} detailRequest={tableDetailRequest} />
+            <TableMonitoringView key={`${activeView.id}:${annotationNavigationId}`} view={activeView} detailRequest={tableDetailRequest} attempts={attempts} phases={phases} submitRetry={submitRetry} />
           ) : null}
         </div>
       </div>

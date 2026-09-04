@@ -9,10 +9,10 @@ export type RequirementKey =
   | 'qsbOverview'
   | 'openApiOptimization'
   | 'etlDataMonitoringOptimization'
+  | 'runDetailStorageLog'
   | 'portalOperationLog'
   | 'messageCenter'
-  | 'pushStrategyOptimization'
-  | 'crmProvisioningAutomation';
+  | 'pushStrategyOptimization';
 
 const RequirementContext = createContext<RequirementKey>('cloudResourceAutomation');
 

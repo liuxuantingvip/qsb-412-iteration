@@ -46,6 +46,19 @@
 
 .viewTabs :global(.arco-tabs-header-title:first-child) {
   margin-left: 0;
+  position: relative;
+}
+
+.viewTabs :global(.arco-tabs-header-title:first-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  width: 1px;
+  height: 12px;
+  background: var(--color-border-2);
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .viewTabs :global(.arco-tabs-header-title) {
@@ -263,10 +276,7 @@
 .keywordSearchGroup :global(.arco-select-focused .arco-select-view),
 .detailSearchGroup :global(.arco-select-view),
 .detailSearchGroup :global(.arco-select-view:hover),
-.detailSearchGroup :global(.arco-select-focused .arco-select-view),
-.detailStatusFieldSelect :global(.arco-select-view),
-.detailStatusFieldSelect :global(.arco-select-view:hover),
-.detailStatusFieldSelect:global(.arco-select-focused) :global(.arco-select-view) {
+.detailSearchGroup :global(.arco-select-focused .arco-select-view) {
   border-radius: @radius-8 0 0 @radius-8;
 }
 
@@ -275,10 +285,7 @@
 .keywordSearchGroup :global(.arco-input-inner-wrapper-focus),
 .detailSearchGroup :global(.arco-input-inner-wrapper),
 .detailSearchGroup :global(.arco-input-inner-wrapper:hover),
-.detailSearchGroup :global(.arco-input-inner-wrapper-focus),
-.detailStatusValueSelect :global(.arco-select-view),
-.detailStatusValueSelect :global(.arco-select-view:hover),
-.detailStatusValueSelect:global(.arco-select-focused) :global(.arco-select-view) {
+.detailSearchGroup :global(.arco-input-inner-wrapper-focus) {
   border-radius: 0 @radius-8 @radius-8 0;
 }
 
@@ -292,6 +299,13 @@
 
 .statusSelect {
   width: 148px;
+}
+
+.statusRefreshGroup {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: @spacing-4;
 }
 
 .detailStatusSelect {
@@ -353,12 +367,17 @@
   font-size: @font-size-body-3;
 }
 
-.annotationStatusCell {
+.annotationStatusCell,
+.detailStatusCell {
   width: 100%;
   min-height: 28px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+.detailStatusCell {
+  justify-content: flex-start;
 }
 
 .tableNameCell {
@@ -466,11 +485,11 @@
 }
 
 .dateStatusCell {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: @spacing-2;
-  min-width: 116px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .dateStatusButton {
@@ -486,6 +505,9 @@
 }
 
 .drilldownButton {
+  position: absolute;
+  left: calc(100% + 4px);
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: @spacing-1;
@@ -509,6 +531,24 @@
   opacity: 1;
   pointer-events: auto;
 }
+
+.stageStatusWithDetail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.statusInfo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: help;
+  font-size: 14px;
+}
+.statusNoData { color: var(--color-text-3); font-size: 12px; }
 
 .statusTooltipTarget {
   display: inline-flex;
@@ -630,6 +670,24 @@
   border-radius: @radius-8;
   font-size: @font-size-body-3;
   line-height: 22px;
+}
+
+.detailRowActions {
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.detailRowActions .logButton {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.retryProgress {
+  color: var(--color-text-3);
+  font-size: @font-size-body-3;
+  line-height: 22px;
+  white-space: nowrap;
 }
 
 .columnSettingsPanel {

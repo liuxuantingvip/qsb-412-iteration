@@ -3,6 +3,8 @@ export type EnabledStatus = 'ENABLED' | 'DISABLED';
 export type RelatedObjectType = 'TASK' | 'SHOP' | 'DATA_TABLE' | 'MONITOR_VIEW';
 export type ScheduleCycle = 'DAY' | 'WEEK' | 'MONTH';
 export type PushResult = 'SUCCESS' | 'FAILED';
+export type PushMode = 'SCHEDULED' | 'REALTIME';
+export type StrategyMessageType = 'PROGRESS' | 'EXCEPTION_SUMMARY' | 'EXCEPTION_ALERT' | 'SUCCESS_ALERT' | 'LOGIN_EXCEPTION';
 
 export interface PushChannel {
   id: string;
@@ -19,14 +21,13 @@ export interface PushChannel {
 
 export interface PushTimeRange {
   id: string;
-  start: string;
-  end: string;
+  time: string;
 }
 
 export interface PushSchedule {
   cycle: ScheduleCycle;
   weekDays: number[];
-  monthDays: number[];
+  monthDays: Array<number | 'LAST_DAY'>;
   timeRanges: PushTimeRange[];
 }
 
@@ -35,6 +36,22 @@ export interface RelatedObjectOption {
   type: RelatedObjectType;
   name: string;
   group: string;
+  productCategory: string;
+  planType?: '日常' | '实时' | '回溯';
+  planNames?: string[];
+  shopNames?: string[];
+  completedExecutions?: number;
+  delivery?: 'success' | 'failed' | 'running';
+  detail?: string;
+  errorCode?: string;
+  loginFailureDetail?: string;
+  loginPlanNames?: string[];
+  loginShopNames?: string[];
+  imagePrefix?: string;
+  imageFailure?: string;
+  monitorPerspective?: '店铺视角' | '数据表视角' | '业务参数视角';
+  createdAt?: string;
+  noAccess?: boolean;
   disabled?: boolean;
   invalid?: boolean;
 }
@@ -44,10 +61,17 @@ export interface PushStrategy {
   name: string;
   status: EnabledStatus;
   productCategory: string;
-  messageType: 'PROGRESS' | 'EXCEPTION' | 'LOGIN_EXCEPTION';
+  productInvalid?: boolean;
+  manualDisabled?: boolean;
+  autoStopReasons?: Array<'PRODUCT' | 'OBJECTS'>;
+  requiresManualEnable?: boolean;
+  unavailableReason?: string;
+  pushMode: PushMode;
+  messageType: StrategyMessageType;
   relatedObjectType: RelatedObjectType;
   relatedMode: 'ALL' | 'CUSTOM';
   relatedObjectIds: string[];
+  relatedObjectNames?: Record<string, string>;
   schedule: PushSchedule;
   channelIds: string[];
   systemStrategy?: boolean;
@@ -62,6 +86,9 @@ export interface PushHistory {
   relatedObjectName: string;
   messageContent: string;
   channelId: string;
+  channelName?: string;
+  channelType?: PushChannelType;
+  snapshot?: import('./strategyRules').MessageSnapshot;
   result: PushResult;
   failureReason?: string;
 }

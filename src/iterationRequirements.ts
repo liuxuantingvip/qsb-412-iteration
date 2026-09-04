@@ -13,12 +13,10 @@ export const iterationMeta = {
 export const iterationRequirements: Array<{ key: RequirementKey; label: string }> = [
   { key: 'qsbOverview', label: '概览' },
   { key: 'etlDataMonitoringOptimization', label: '数据监控优化' },
+  { key: 'runDetailStorageLog', label: '运行详情新增入库日志' },
   { key: 'portalOperationLog', label: '门户操作日志' },
   { key: 'pushStrategyOptimization', label: '推送策略中心优化' },
   { key: 'messageCenter', label: '公告推送' },
-  { key: 'crmProvisioningAutomation', label: 'CRM 自动化开通' },
 ];
 
-export const isRequirementPendingAlignment = (key: RequirementKey) => (
-  key === 'crmProvisioningAutomation'
-);
+export const isRequirementPendingAlignment = (_key: RequirementKey) => false;

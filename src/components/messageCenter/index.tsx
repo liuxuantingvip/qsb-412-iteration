@@ -4,6 +4,7 @@ import {
   Button,
   Empty,
   Modal,
+  Spin,
   Tag,
 } from '@arco-design/web-react';
 import {
@@ -47,7 +48,7 @@ export type AnnouncementMessageItem = {
   totalCount: number;
 };
 
-type CategoryKey = 'data' | 'announcement';
+export type MessageCenterCategory = 'data' | 'announcement';
 
 const statusPriority: Record<DataMessageStatus, number> = {
   failed: 1,
@@ -59,22 +60,30 @@ const statusPriority: Record<DataMessageStatus, number> = {
 
 export function MessageCenterModal({
   visible,
+  initialCategory = 'data',
+  initialAnnouncementId,
   dataMessages,
   announcementMessages,
+  announcementLoadState = 'ready',
+  onRetryAnnouncements,
   onClose,
   onMarkDataRead,
   onMarkAnnouncementRead,
   onOpenRunDetail,
 }: {
   visible: boolean;
+  initialCategory?: MessageCenterCategory;
+  initialAnnouncementId?: string | null;
   dataMessages: DataMessageItem[];
   announcementMessages: AnnouncementMessageItem[];
+  announcementLoadState?: 'ready' | 'loading' | 'error';
+  onRetryAnnouncements?: () => void;
   onClose: () => void;
   onMarkDataRead: (id: string) => void;
   onMarkAnnouncementRead: (id: string) => void;
   onOpenRunDetail: (message: DataMessageItem) => void;
 }) {
-  const [category, setCategory] = useState<CategoryKey>('data');
+  const [category, setCategory] = useState<MessageCenterCategory>('data');
   const [expandedDataIds, setExpandedDataIds] = useState<string[]>([]);
   const [expandedAnnouncementIds, setExpandedAnnouncementIds] = useState<string[]>([]);
   const unreadDataCount = dataMessages.filter((item) => item.unread).length;
@@ -87,15 +96,31 @@ export function MessageCenterModal({
     .sort((left, right) => (
     Date.parse(right.publishedAt) - Date.parse(left.publishedAt)
   )), [announcementMessages]);
+  const displayedAnnouncementMessages = useMemo(() => {
+    if (!initialAnnouncementId) return sortedAnnouncementMessages;
+    if (!sortedAnnouncementMessages.some((item) => item.id === initialAnnouncementId)) return [];
+    return [...sortedAnnouncementMessages].sort((left, right) => (
+      Number(right.id === initialAnnouncementId) - Number(left.id === initialAnnouncementId)
+    ));
+  }, [initialAnnouncementId, sortedAnnouncementMessages]);
   const unreadAnnouncementCount = sortedAnnouncementMessages.filter((item) => item.unread).length;
 
   useEffect(() => {
     if (visible) {
-      setCategory('data');
-      setExpandedDataIds(dataMessages[0] ? [dataMessages[0].id] : []);
-      setExpandedAnnouncementIds(sortedAnnouncementMessages.map((item) => item.id));
+      const hasTargetAnnouncement = Boolean(initialAnnouncementId
+        && sortedAnnouncementMessages.some((item) => item.id === initialAnnouncementId));
+      const nextCategory = hasTargetAnnouncement ? 'announcement' : initialCategory;
+      setCategory(nextCategory);
+      setExpandedDataIds(nextCategory === 'data' && dataMessages[0] ? [dataMessages[0].id] : []);
+      setExpandedAnnouncementIds(hasTargetAnnouncement && initialAnnouncementId
+        ? [initialAnnouncementId]
+        : nextCategory === 'announcement' ? sortedAnnouncementMessages.map((item) => item.id) : []);
+      if (announcementLoadState === 'ready' && hasTargetAnnouncement && initialAnnouncementId
+        && sortedAnnouncementMessages.some((item) => item.id === initialAnnouncementId && item.unread)) {
+        onMarkAnnouncementRead(initialAnnouncementId);
+      }
     }
-  }, [visible]);
+  }, [initialAnnouncementId, initialCategory, visible, announcementLoadState]);
 
   const toggleDataDetail = (item: DataMessageItem) => {
     setExpandedDataIds((current) => (
@@ -158,7 +183,7 @@ export function MessageCenterModal({
             <div>
               <div className={styles.titleRow}>
                 <h3 className={styles.title}>{title}</h3>
-                <span className={styles.subtitle}>{messageTotal} 条 · {unreadTotal} 未读</span>
+                {category === 'data' || announcementLoadState === 'ready' ? <span className={styles.subtitle}>{messageTotal} 条 · {unreadTotal} 未读</span> : null}
               </div>
             </div>
           </header>
@@ -219,11 +244,18 @@ export function MessageCenterModal({
                 <div className={styles.empty}><Empty description="暂无取数消息" /></div>
               )
             ) : (
-              sortedAnnouncementMessages.length ? sortedAnnouncementMessages.map((item) => {
+              announcementLoadState === 'loading' ? (
+                <div className={styles.empty}><Spin tip="公告加载中" /></div>
+              ) : announcementLoadState === 'error' ? (
+                <div className={styles.empty}><Empty description={<div className={styles.emptyActions}>
+                  <span>公告加载失败</span>
+                  <Button type="primary" size="small" onClick={onRetryAnnouncements}>重试</Button>
+                </div>} /></div>
+              ) : displayedAnnouncementMessages.length ? displayedAnnouncementMessages.map((item) => {
                 const expanded = expandedAnnouncementIds.includes(item.id);
                 return (
                   <MessageCenterAnnotationMarker
-                    noteId={item.id === sortedAnnouncementMessages[0]?.id ? 'MSG-4' : ''}
+                    noteId={item.id === displayedAnnouncementMessages[0]?.id ? 'MSG-4' : ''}
                     key={item.id}
                     layout="block"
                   >

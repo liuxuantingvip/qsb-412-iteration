@@ -1,12 +1,12 @@
 import {
   AreaChart,
+  LineChart,
   LinearProgressChart,
-  PieChart,
   VChart,
   type IAreaChartSpec,
   type ICommonChartSpec,
   type ILinearProgressChartSpec,
-  type IPieChartSpec,
+  type ILineChartSpec,
 } from '@visactor/react-vchart';
 
 export function SavedHoursChart({ spec }: { spec: IAreaChartSpec }) {
@@ -17,16 +17,12 @@ export function MetricSparklineChart({ spec }: { spec: IAreaChartSpec }) {
   return <AreaChart spec={spec} />;
 }
 
-export function RunTrendDataChart({ spec }: { spec: IAreaChartSpec }) {
-  return <AreaChart spec={spec} />;
+export function RunTrendDataChart({ spec }: { spec: ILineChartSpec }) {
+  return <LineChart spec={spec} />;
 }
 
 export function PlanIngestionChart({ spec }: { spec: ICommonChartSpec }) {
   return <VChart spec={spec} />;
-}
-
-export function DistributionChart({ spec }: { spec: IPieChartSpec }) {
-  return <PieChart spec={spec} />;
 }
 
 export function ProgressChart({ spec }: { spec: ILinearProgressChartSpec }) {

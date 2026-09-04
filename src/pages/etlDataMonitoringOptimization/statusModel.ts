@@ -16,7 +16,15 @@ export interface TaskStageFacts {
   validationStatus: StageStatus;
   collectErrorCode?: string;
   importErrorCode?: string;
+  // 均取计划系统对本次执行实际生效的数据，不从当前计划配置或页面时钟重算。
+  planElapsedMinutes?: number;
+  planTimeoutMinutes?: number;
 }
+
+export const isPlanTimedOut = ({ planElapsedMinutes, planTimeoutMinutes }: Pick<TaskStageFacts, 'planElapsedMinutes' | 'planTimeoutMinutes'>): boolean => (
+  Number.isFinite(planElapsedMinutes) && Number.isFinite(planTimeoutMinutes)
+  && planTimeoutMinutes! > 0 && planElapsedMinutes! > planTimeoutMinutes!
+);
 
 const statusPriority: Array<Exclude<DateStatus, 'noTask'>> = ['failed', 'abnormal', 'waiting', 'success'];
 
@@ -28,6 +36,7 @@ export const classifyTaskFinalStatus = (facts: TaskStageFacts): DateStatus => {
   if ([collectStatus, importStatus, validationStatus].every((status) => status === '无任务')) {
     return 'noTask';
   }
+  if (isPlanTimedOut(facts)) return 'failed';
   if (importStatus === '失败' || facts.importErrorCode) return 'failed';
   if (collectStatus === '失败') {
     return facts.collectErrorCode?.startsWith('1') ? 'abnormal' : 'failed';

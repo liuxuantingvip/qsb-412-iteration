@@ -43,6 +43,7 @@ import type {
   RunStatus,
   TriggerGroup,
 } from './interface';
+import { RunDetailModal } from './runDetail/RunDetailModal';
 import { triggerGroups, triggerOptions } from './triggerMappings';
 import styles from './index.module.less';
 
@@ -222,6 +223,10 @@ function matchesOverviewIssue(item: RunRecord, issueType?: OverviewRunFilters['i
   return false;
 }
 
+export function RunRecordDetailDrawer({ record, onClose }: { record: RunRecord | null; onClose: () => void }) {
+  return <RunDetailModal record={record} onClose={onClose} />;
+}
+
 function RunRecordsView({ initialFilters }: { initialFilters?: OverviewRunFilters }) {
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState<RunRecord[]>([]);
@@ -233,6 +238,7 @@ function RunRecordsView({ initialFilters }: { initialFilters?: OverviewRunFilter
   const [storageStatus, setStorageStatus] = useState<string>();
   const [selectedKeys, setSelectedKeys] = useState<(string | number)[]>([]);
   const [detailRecord, setDetailRecord] = useState<RunRecord | null>(null);
+  const [storageLogAnnotationRequested, setStorageLogAnnotationRequested] = useState<'entry' | 'drawer' | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
 
@@ -254,6 +260,27 @@ function RunRecordsView({ initialFilters }: { initialFilters?: OverviewRunFilter
     const targetRecord = records.find((item) => item.key === overviewFilters.targetRecordKey);
     if (targetRecord) setDetailRecord(targetRecord);
   }, [overviewFilters?.targetRecordKey, records]);
+
+  useEffect(() => {
+    const openStorageLog = () => setStorageLogAnnotationRequested('drawer');
+    const openStorageLogEntry = () => setStorageLogAnnotationRequested('entry');
+    window.addEventListener('run-detail-storage-log:open', openStorageLog);
+    window.addEventListener('run-detail-storage-log:open-entry', openStorageLogEntry);
+    return () => {
+      window.removeEventListener('run-detail-storage-log:open', openStorageLog);
+      window.removeEventListener('run-detail-storage-log:open-entry', openStorageLogEntry);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!storageLogAnnotationRequested || !records.length) return;
+    setDetailRecord(records[0]);
+    const openStorage = storageLogAnnotationRequested === 'drawer';
+    setStorageLogAnnotationRequested(null);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent('run-detail-storage-log:open-record', {
+      detail: { openStorage },
+    })), 180);
+  }, [storageLogAnnotationRequested, records]);
 
   const data = useMemo(() => records.filter((item) => (
     (!keyword.trim() || item[searchField].includes(keyword.trim()))
@@ -428,32 +455,7 @@ function RunRecordsView({ initialFilters }: { initialFilters?: OverviewRunFilter
           setPageSize(nextPageSize);
         }}
       />
-      <Drawer
-        title="运行详情"
-        visible={Boolean(detailRecord)}
-        width={720}
-        footer={null}
-        className={styles.runDetailDrawer}
-        onCancel={() => setDetailRecord(null)}
-      >
-        {detailRecord ? (
-          <div className={styles.runDetailBody}>
-            <section>
-              <h3>执行信息</h3>
-              <div className={styles.runDetailGrid}>
-                <div><span>计划名称</span><strong>{detailRecord.planName}</strong></div>
-                <div><span>店铺</span><strong>{detailRecord.storeName}</strong></div>
-                <div><span>运行开始时间</span><strong>{detailRecord.startTime}</strong></div>
-                <div><span>运行结束时间</span><strong>{detailRecord.endTime}</strong></div>
-                <div><span>取数执行</span><strong><StatusTag status={detailRecord.collectionStatus} /></strong></div>
-                <div><span>数据校验</span><strong><StatusTag status={detailRecord.validationStatus} /></strong></div>
-                <div><span>数据入库</span><strong><StatusTag status={detailRecord.storageStatus} /></strong></div>
-                {detailRecord.issueReason ? <div><span>异常原因</span><strong>{detailRecord.issueReason}</strong></div> : null}
-              </div>
-            </section>
-          </div>
-        ) : null}
-      </Drawer>
+      <RunDetailModal record={detailRecord} onClose={() => setDetailRecord(null)} />
     </div>
   );
 }

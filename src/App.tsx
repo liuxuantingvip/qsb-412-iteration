@@ -54,10 +54,20 @@ import {
 } from '@/components/etlDataMonitoringAnnotations';
 import { messageCenterAnnotations, MessageCenterAnnotationDrawer, MessageCenterAnnotationMarker } from '@/components/messageCenterAnnotations';
 import {
+  qsbOverviewAnnotations,
+  QsbOverviewAnnotationDrawer,
+} from '@/components/qsbOverviewAnnotations';
+import {
   portalOperationLogAnnotations,
   PortalOperationLogAnnotationDrawer,
 } from '@/components/portalOperationLogAnnotations';
+import {
+  runDetailStorageLogAnnotations,
+  RunDetailStorageLogAnnotationDrawer,
+} from '@/components/runDetailStorageLogAnnotations';
 import type { RequirementAnnotation } from '@/components/requirementAnnotations';
+import { pushStrategyAnnotations, PushStrategyAnnotationDrawer } from '@/components/pushStrategyAnnotations';
+import { selectAnnotationTargets } from '@/components/requirementAnnotations/locateTargets';
 import {
   getUnreadMessageCount,
   MessageCenterModal,
@@ -65,6 +75,7 @@ import {
 import type {
   AnnouncementMessageItem,
   DataMessageItem,
+  MessageCenterCategory,
 } from '@/components/messageCenter';
 import { RequirementProvider } from '@/context/RequirementContext';
 import type { RequirementKey } from '@/context/RequirementContext';
@@ -89,9 +100,11 @@ import ParameterManagement from '@/pages/parameterManagement';
 import PortalOperationLog from '@/pages/portalOperationLog';
 import PortalOperationLogPrd from '@/pages/portalOperationLogPrd';
 import PushStrategyCenter from '@/pages/pushStrategyCenter';
+import PushStrategyOptimizationPrd from '@/pages/pushStrategyOptimizationPrd';
 import type { ParameterMenuKey } from '@/pages/parameterManagement';
 import QsbOverview from '@/pages/qsbOverview';
-import type { OverviewRunFilters } from '@/pages/qsbOverview/overviewContent';
+import RunDetailStorageLogPrd from '@/pages/runDetailStorageLogPrd';
+import { overviewAnnouncements } from '@/pages/qsbOverview/overviewContent';
 import QsbOverviewPrd from '@/pages/qsbOverviewPrd';
 import TaskPlanManagement from '@/pages/taskPlanManagement';
 import TenantManagement from '@/pages/tenantManagement';
@@ -103,6 +116,7 @@ const { Text } = Typography;
 
 type ProductTopTab = '电商取数宝' | '跨境取数宝';
 type RequirementView = 'prd' | 'prototype';
+
 const currentTenantRole: TenantRole = 'tenantAdmin';
 
 const streamlineMenuIcons = {
@@ -173,8 +187,9 @@ const getRequirementDefaultPortalState = (key: RequirementKey) => {
   if (key === 'qsbOverview') return { topTab: '电商取数宝', menuKey: '取数宝概览' };
   if (key === 'autoRetryOptimization') return { topTab: '电商取数宝', menuKey: '计划管理' };
   if (key === 'openApiOptimization') return { topTab: '开放平台', menuKey: 'API Keys' };
-  if (key === 'portalOperationLog') return { topTab: '个人中心', menuKey: '操作日志' };
   if (key === 'etlDataMonitoringOptimization') return { topTab: '电商取数宝', menuKey: '数据监控' };
+  if (key === 'runDetailStorageLog') return { topTab: '电商取数宝', menuKey: '运行记录' };
+  if (key === 'portalOperationLog') return { topTab: '个人中心', menuKey: '操作日志' };
   if (key === 'businessCustomParameterExperience') return { topTab: '电商取数宝', menuKey: '本店商品配置' };
   return { topTab: '电商取数宝', menuKey: '本店商品配置' };
 };
@@ -302,48 +317,18 @@ const initialDataMessages: DataMessageItem[] = [
   },
 ];
 
-const initialAnnouncementMessages: AnnouncementMessageItem[] = [
-  {
-    id: 'announcement-msg-001',
-    unread: true,
-    type: '平台公告',
-    range: '电商取数宝',
-    status: 'published',
-    title: '生意参谋商品表字段口径调整通知',
-    summary: '商品明细表部分字段口径将在 7 月 24 日更新，请关注相关计划的运行结果。',
-    publishedAt: '2026-07-21 09:30',
-    linkLabel: '查看详情',
-    linkUrl: '/help/business-advisor-field-rule',
-    readCount: 128,
-    totalCount: 326,
-  },
-  {
-    id: 'announcement-msg-002',
-    unread: true,
-    type: '维护通知',
-    range: '全部租户',
-    status: 'published',
-    title: '取数宝夜间维护通知',
-    summary: '7 月 22 日 00:00-02:00 将进行取数服务维护，维护期间部分计划可能延迟执行。',
-    publishedAt: '2026-07-20 18:00',
-    readCount: 241,
-    totalCount: 326,
-  },
-  {
-    id: 'announcement-msg-003',
-    unread: false,
-    type: '运营公告',
-    range: '跨境取数宝',
-    status: 'draft',
-    title: '跨境取数宝新增平台适配',
-    summary: '跨境取数宝将新增平台适配能力，公告发布时间待确认。',
-    publishedAt: '-',
-    linkLabel: '查看功能介绍',
-    linkUrl: '/market/cross-border-new-platform',
-    readCount: 0,
-    totalCount: 86,
-  },
-];
+const initialAnnouncementMessages: AnnouncementMessageItem[] = overviewAnnouncements.map((item, index) => ({
+  id: item.id,
+  unread: index < 2,
+  type: index === 0 ? '维护通知' : '平台公告',
+  range: '电商取数宝',
+  status: 'published',
+  title: item.title,
+  summary: item.summary,
+  publishedAt: `${item.publishedAt} 09:00`,
+  readCount: 118 + index * 13,
+  totalCount: 326,
+}));
 
 export default function App() {
   const requestedRequirement = new URLSearchParams(window.location.search).get('requirement');
@@ -363,20 +348,27 @@ export default function App() {
   const [selectedMenuKey, setSelectedMenuKey] = useState(initialPortalState.menuKey);
   const [selectedTopTab, setSelectedTopTab] = useState(initialPortalState.topTab);
   const [messageCenterVisible, setMessageCenterVisible] = useState(false);
+  const [messageCenterInitialCategory, setMessageCenterInitialCategory] = useState<MessageCenterCategory>('data');
+  const [messageCenterTargetAnnouncementId, setMessageCenterTargetAnnouncementId] = useState<string | null>(null);
   const [dataMessages, setDataMessages] = useState<DataMessageItem[]>(initialDataMessages);
   const [announcementMessages, setAnnouncementMessages] = useState<AnnouncementMessageItem[]>(initialAnnouncementMessages);
   const [activeRunDetail, setActiveRunDetail] = useState<DataMessageItem | null>(null);
-  const [overviewRunFilters, setOverviewRunFilters] = useState<OverviewRunFilters | null>(null);
   const unreadMessageCount = getUnreadMessageCount(dataMessages, announcementMessages);
-  const activeAnnotations = activeRequirement === 'messageCenter'
-    ? messageCenterAnnotations
-    : activeRequirement === 'autoRetryOptimization'
-      ? autoRetryAnnotations
-      : activeRequirement === 'etlDataMonitoringOptimization'
-        ? etlDataMonitoringAnnotations
-        : activeRequirement === 'portalOperationLog'
-          ? portalOperationLogAnnotations
-          : [];
+  const activeAnnotations = activeRequirement === 'qsbOverview'
+    ? qsbOverviewAnnotations
+    : activeRequirement === 'messageCenter'
+      ? messageCenterAnnotations
+      : activeRequirement === 'autoRetryOptimization'
+        ? autoRetryAnnotations
+        : activeRequirement === 'etlDataMonitoringOptimization'
+          ? etlDataMonitoringAnnotations
+          : activeRequirement === 'portalOperationLog'
+            ? portalOperationLogAnnotations
+            : activeRequirement === 'runDetailStorageLog'
+              ? runDetailStorageLogAnnotations
+              : activeRequirement === 'pushStrategyOptimization'
+                ? pushStrategyAnnotations
+                : [];
 
   const updateRequirementUrl = (nextRequirement: RequirementKey, nextView: RequirementView) => {
     const params = new URLSearchParams(window.location.search);
@@ -411,6 +403,9 @@ export default function App() {
   );
 
   const getPrdContent = () => {
+    if (activeRequirement === 'runDetailStorageLog') {
+      return <RunDetailStorageLogPrd />;
+    }
     if (isRequirementPendingAlignment(activeRequirement)) {
       return <div className="portal-empty-page"><Empty description="需求待拉齐" /></div>;
     }
@@ -423,7 +418,7 @@ export default function App() {
     if (activeRequirement === 'etlDataMonitoringOptimization') return <EtlDataMonitoringOptimizationPrd />;
     if (activeRequirement === 'businessCustomParameterExperience') return <BusinessCustomParameterExperiencePrd />;
     if (activeRequirement === 'pushStrategyOptimization') {
-      return <div className="portal-empty-page"><Empty description="该需求暂未编写 PRD" /></div>;
+      return <PushStrategyOptimizationPrd />;
     }
     return <MessageCenterPrd />;
   };
@@ -463,7 +458,8 @@ export default function App() {
     });
     document.querySelectorAll('.annotation-locate-group-highlight').forEach((element) => element.remove());
 
-    if (targets.length === 1) {
+    // A pseudo-element on <tr> can participate in table layout; outline rows with an overlay.
+    if (targets.length === 1 && targets[0].tagName !== 'TR') {
       const [target] = targets;
       target.classList.remove('annotation-locate-highlight');
       void target.offsetWidth;
@@ -501,11 +497,21 @@ export default function App() {
     updateRequirementUrl(activeRequirement, 'prototype');
 
     const locateMarker = (remainingTries = 48) => {
-      const markers = Array.from(
+      const markers = selectAnnotationTargets(Array.from(
         document.querySelectorAll<HTMLElement>(`[data-note-id="${annotation.noteId}"]`),
-      );
+      ), annotation.locateMode);
       if (markers.length > 0) {
-        scrollAnnotationTargetIntoView(markers[0]);
+        if (annotation.locateMode === 'column-headers') {
+          // 横向宽表按整组中间列表头定位，避免只滚动纵轴或框住所有数据行。
+          markers[Math.floor(markers.length / 2)].scrollIntoView({
+            behavior: 'auto', block: 'nearest', inline: 'center',
+          });
+        } else if (activeRequirement === 'qsbOverview' && annotation.noteId === 'QSB-2.4') {
+          // 计划卡片可能被横向排期和外层页面同时裁切，需滚动所有祖先容器。
+          markers[0].scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        } else {
+          scrollAnnotationTargetIntoView(markers[0]);
+        }
         window.setTimeout(() => highlightAnnotationTargets(markers), 360);
         return;
       }
@@ -542,7 +548,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const openMessageCenter = () => setMessageCenterVisible(true);
+    const openMessageCenter = () => {
+      setMessageCenterInitialCategory('data');
+      setMessageCenterTargetAnnouncementId(null);
+      setMessageCenterVisible(true);
+    };
     window.addEventListener('message-center:open', openMessageCenter);
     return () => window.removeEventListener('message-center:open', openMessageCenter);
   }, []);
@@ -566,15 +576,22 @@ export default function App() {
     );
   const frontContent = selectedMenuKey === '取数宝概览' ? (
     <QsbOverview
-      onViewRuns={(filters) => {
-        setOverviewRunFilters(filters);
-        setSelectedMenuKey('运行记录');
+      announcements={announcementMessages}
+      onOpenAnnouncement={(id) => {
+        setMessageCenterTargetAnnouncementId(id);
+        setMessageCenterInitialCategory('announcement');
+        setMessageCenterVisible(true);
+      }}
+      onOpenAnnouncements={() => {
+        setMessageCenterTargetAnnouncementId(null);
+        setMessageCenterInitialCategory('announcement');
+        setMessageCenterVisible(true);
       }}
     />
   ) : selectedMenuKey === '计划管理' ? (
     <TaskPlanManagement />
   ) : selectedMenuKey === '运行记录' ? (
-    <AutoRetryOptimization page="运行记录" initialRunFilters={overviewRunFilters ?? undefined} />
+    <AutoRetryOptimization page="运行记录" />
   ) : selectedMenuKey === '数据监控' ? (
     <EtlDataMonitoringOptimization />
   ) : isParameterMenuKey(selectedMenuKey) ? (
@@ -634,7 +651,6 @@ export default function App() {
 
   const handleSideMenuClick = (key: string) => {
     if (key !== '运行记录') setActiveRunDetail(null);
-    if (key === '运行记录') setOverviewRunFilters(null);
     setSelectedMenuKey(key);
   };
 
@@ -740,8 +756,8 @@ export default function App() {
             <Layout className="portal-layout">
             <Header className="portal-header">
               <div className={`portal-brand${collapsed ? ' portal-brand-collapsed' : ''}`}>
-                <img src={logo} alt="取数宝" className="portal-logo" />
-                {!collapsed && <Text className="portal-logo-text">取数宝</Text>}
+                <img src={logo} alt="店数宝" className="portal-logo" />
+                {!collapsed && <Text className="portal-logo-text">店数宝</Text>}
                 <Button
                   type="text"
                   size="small"
@@ -773,7 +789,11 @@ export default function App() {
                       className="portal-notification-button"
                       icon={<IconNotification />}
                       aria-label="消息通知"
-                      onClick={() => setMessageCenterVisible(true)}
+                      onClick={() => {
+                        setMessageCenterInitialCategory('data');
+                        setMessageCenterTargetAnnouncementId(null);
+                        setMessageCenterVisible(true);
+                      }}
                     />
                   </Badge>
                 </MessageCenterAnnotationMarker>
@@ -880,9 +900,15 @@ export default function App() {
             </Layout>
             <MessageCenterModal
               visible={messageCenterVisible}
+              initialCategory={messageCenterInitialCategory}
+              initialAnnouncementId={messageCenterTargetAnnouncementId}
               dataMessages={dataMessages}
               announcementMessages={announcementMessages}
-              onClose={() => setMessageCenterVisible(false)}
+              onClose={() => {
+                setMessageCenterVisible(false);
+                setMessageCenterInitialCategory('data');
+                setMessageCenterTargetAnnouncementId(null);
+              }}
               onMarkDataRead={markDataMessageRead}
               onMarkAnnouncementRead={markAnnouncementMessageRead}
               onOpenRunDetail={openRunDetailFromMessage}
@@ -927,31 +953,49 @@ export default function App() {
                 )}
               </div>
             )}
-            {activeRequirement === 'autoRetryOptimization' ? (
-              <AutoRetryAnnotationDrawer
-                visible={annotationDrawerOpen}
-                onClose={() => setAnnotationDrawerOpen(false)}
-                onLocate={handleLocateAnnotation}
-              />
-            ) : activeRequirement === 'etlDataMonitoringOptimization' ? (
-              <EtlDataMonitoringAnnotationDrawer
-                visible={annotationDrawerOpen}
-                onClose={() => setAnnotationDrawerOpen(false)}
-                onLocate={handleLocateAnnotation}
-              />
-            ) : activeRequirement === 'portalOperationLog' ? (
-              <PortalOperationLogAnnotationDrawer
-                visible={annotationDrawerOpen}
-                onClose={() => setAnnotationDrawerOpen(false)}
-                onLocate={handleLocateAnnotation}
-              />
-            ) : (
-              <MessageCenterAnnotationDrawer
-                visible={annotationDrawerOpen}
-                onClose={() => setAnnotationDrawerOpen(false)}
-                onLocate={handleLocateAnnotation}
-              />
-            )}
+                {activeRequirement === 'qsbOverview' ? (
+                  <QsbOverviewAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : activeRequirement === 'autoRetryOptimization' ? (
+                  <AutoRetryAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : activeRequirement === 'etlDataMonitoringOptimization' ? (
+                  <EtlDataMonitoringAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : activeRequirement === 'runDetailStorageLog' ? (
+                  <RunDetailStorageLogAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : activeRequirement === 'pushStrategyOptimization' ? (
+                  <PushStrategyAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : activeRequirement === 'portalOperationLog' ? (
+                  <PortalOperationLogAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                ) : (
+                  <MessageCenterAnnotationDrawer
+                    visible={annotationDrawerOpen}
+                    onClose={() => setAnnotationDrawerOpen(false)}
+                    onLocate={handleLocateAnnotation}
+                  />
+                )}
           </div>
         </div>
       </ConfigProvider>

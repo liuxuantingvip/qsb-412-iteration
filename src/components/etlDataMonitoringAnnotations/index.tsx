@@ -5,6 +5,7 @@ import {
 } from '@/components/requirementAnnotations';
 import type { RequirementAnnotation } from '@/components/requirementAnnotations';
 import { etlDataMonitoringAnnotations } from './data';
+import { EtlAnnotationComparison } from './ComparisonPreview';
 
 export function EtlDataMonitoringAnnotationMarker({
   noteId,
@@ -40,6 +41,7 @@ export function EtlDataMonitoringAnnotationDrawer({
       pageLabel={(page) => page}
       onClose={onClose}
       onLocate={onLocate}
+      renderExample={(kind) => <EtlAnnotationComparison kind={kind} />}
     />
   );
 }

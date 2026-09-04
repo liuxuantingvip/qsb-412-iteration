@@ -79,6 +79,11 @@
   display: none;
 }
 
+.filterTabs :global(.arco-tabs-header-title) {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
 .filterTabs :global(.arco-tabs-header-scroll),
 .filterTabs :global(.arco-tabs-header-wrapper) {
   padding-left: 0;
@@ -232,6 +237,58 @@
   line-height: 22px;
 }
 
+.filterBarPreview {
+  flex: 1 0 100%;
+  width: 100%;
+  display: grid;
+  gap: @spacing-3;
+  margin-top: @spacing-2;
+  padding: @spacing-4;
+  border: @border-1 @border-solid var(--color-border-2);
+  border-radius: @radius-large;
+  background: var(--color-fill-1);
+  pointer-events: none;
+}
+
+.filterSearchPreview {
+  width: 100%;
+}
+
+.filterControlsPreview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: @spacing-2;
+}
+
+.filterControlsPreview :global(.arco-select) {
+  width: 100%;
+}
+
+.filterRelationPreview {
+  padding: @spacing-2 @spacing-3;
+  border-radius: @radius-small;
+  background: var(--color-bg-2);
+  color: rgb(var(--arcoblue-6));
+  font-size: @font-size-body-1;
+  font-weight: @font-weight-500;
+  line-height: 20px;
+  text-align: center;
+}
+
+.loadingStatePreview {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: @spacing-3;
+  margin-top: @spacing-2;
+  padding: @spacing-6;
+  border-radius: @radius-small;
+  background: var(--color-fill-1);
+  color: var(--color-text-2);
+  font-size: @font-size-body-3;
+}
+
 .emptyPreview {
   display: inline-flex;
   align-items: center;
@@ -242,6 +299,71 @@
   color: var(--color-text-3);
   font-size: @font-size-body-1;
   line-height: 22px;
+}
+
+.emptyStatePreview {
+  flex: 1 0 100%;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: @spacing-3;
+  margin-top: @spacing-2;
+  padding: @spacing-5 0;
+  border-radius: @radius-small;
+  background: var(--color-fill-1);
+}
+
+.emptyStatePreview :global(.arco-empty) {
+  padding: 0;
+}
+
+.emptyStatePreview :global(.arco-empty-image) {
+  height: 48px;
+}
+
+.emptyStatePreview[style] :global(.arco-empty-description) {
+  color: var(--annotation-empty-description-color);
+}
+
+.emptyStateError :global(.arco-empty-description) {
+  color: var(--annotation-empty-description-color, rgb(var(--danger-6)));
+}
+
+.resultSuccessPreview,
+.resultErrorPreview {
+  font-size: @font-size-body-3;
+  font-weight: 500;
+}
+
+.resultSuccessPreview {
+  color: rgb(var(--success-6));
+}
+
+.resultErrorPreview {
+  color: rgb(var(--danger-6));
+}
+
+.viewSwitchPreview {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 20px;
+  background: #f2f3f5;
+}
+
+.viewSwitchPreview > span {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #86909c;
+}
+
+.viewSwitchPreview > .viewSwitchActivePreview {
+  background: #fff;
+  color: #1d2129;
+  box-shadow: 0 1px 3px #c9cdd4;
 }
 
 @media (max-width: 900px) {

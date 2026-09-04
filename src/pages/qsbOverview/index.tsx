@@ -1,76 +1,209 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Button, Message, Tooltip } from '@arco-design/web-react';
-import { IconApps, IconFullscreen, IconFullscreenExit, IconRobot } from '@arco-design/web-react/icon';
-import { BookOpen, Computer, Data, FileText, Robot, Shop } from '@icon-park/react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Button, Empty, Message, Tabs, Tooltip } from '@arco-design/web-react';
+import { IconApps, IconFullscreen, IconFullscreenExit, IconLeft, IconRight, IconRobot } from '@arco-design/web-react/icon';
+import { BookOpen, FileText } from '@icon-park/react';
 import '@icon-park/react/styles/index.css';
-import type { IAreaChartSpec, ILinearProgressChartSpec, IPieChartSpec } from '@visactor/react-vchart';
-import logo from '@/assets/images/qsb-logo.svg';
+import type { ILinearProgressChartSpec, ILineChartSpec } from '@visactor/react-vchart';
+import { OverviewAccountContent } from './OverviewAccountContent';
+import { OverviewAssetGrid } from './OverviewAssetGrid';
+import { RobotOverloadWarning, RobotOverloadBadge } from './RobotOverloadWarning';
+import { RunTrendLegendItem, RunTrendLoading } from './RunTrendElements';
+import { overviewRunTrendSeries } from './overviewContent';
+import { OverviewAnomalyRecord, useWorkRetry } from './AnomalyElements';
+import { buildOverviewWorkRecord } from './workRetry';
+import { RunRecordDetailDrawer } from '../autoRetryOptimization';
+import type { RunRecord } from '../autoRetryOptimization/interface';
 import styles from './index.module.less';
-import { buildDataCompletionSpec, buildDataOverviewDonutSpec, buildOverviewRunFilters, buildOverviewRunTrendSpec, buildOverviewViewModel, buildSemiSparklineSpec, buildWeeklyRobotLayout, calculateRate, formatOverviewAnnouncementDate, getOverviewRobotSchedules, getOverviewScheduleAxis, getOverviewScheduleBlockPosition, overviewAccountSummary, overviewAnomalyGroups, overviewAnomalySummary, overviewAnnouncements, overviewAssets, overviewCopy, overviewDataSnapshotIntervalMs, overviewDataSnapshots, overviewPendingStoreDetails, overviewRunMetricsByPeriod, overviewScheduleViews, overviewStoreDelivery } from './overviewContent';
-import type { OverviewPeriodKey, OverviewRunFilters, OverviewScheduleViewKey } from './overviewContent';
+import { TrendIndicator } from './TrendIndicator';
+import { shouldShowOverviewOverloadWarning } from './overviewContent';
+import { buildDataCompletionSpec, buildOverviewMonthlyCalendarDays, buildOverviewRunTrendSpec, buildOverviewTimeCalendarDays, buildOverviewViewModel, canNavigateOverviewScheduleForward, formatOverviewAnnouncementDate, formatOverviewTaskDuration, getOverviewMonthlyRobotSchedules, getOverviewRobotSchedules, getOverviewScheduleAxis, getOverviewTimeEventLayout, overviewAnomalyGroups, overviewAnomalySummary, overviewCalendarHourLabels, overviewCopy, overviewDataSnapshotIntervalMs, overviewDataSnapshots, overviewMonthlyPlanCycleLegend, overviewPeriodOptions, overviewRunMetricsByPeriod, overviewScheduleViews, overviewTimeCalendarAnchorDate } from './overviewContent';
+import type { OverviewPeriodKey, OverviewRobotSchedule, OverviewScheduleViewKey } from './overviewContent';
 
-const MetricSparklineChart = lazy(() => import('./OverviewCharts').then((module) => ({ default: module.MetricSparklineChart })));
-const DistributionChart = lazy(() => import('./OverviewCharts').then((module) => ({ default: module.DistributionChart })));
 const ProgressChart = lazy(() => import('./OverviewCharts').then((module) => ({ default: module.ProgressChart })));
 const RunTrendDataChart = lazy(() => import('./OverviewCharts').then((module) => ({ default: module.RunTrendDataChart })));
+const { TabPane } = Tabs;
 
-interface QsbOverviewProps { onViewRuns?: (filters: OverviewRunFilters) => void }
+interface QsbOverviewProps {
+  announcements: readonly {
+    id: string;
+    publishedAt: string;
+    range: '全部租户' | '电商取数宝' | '跨境取数宝';
+    status: 'published' | 'draft';
+    title: string;
+  }[];
+  onOpenAnnouncement?: (id: string) => void;
+  onOpenAnnouncements?: () => void;
+}
 
 const HELP_CENTER_URL = 'https://help.shizai.com/';
 const numberFormatter = new Intl.NumberFormat('zh-CN');
-const assetPresentation = {
-  stores: { title: '店铺', icon: <Shop theme="outline" size={16} fill="currentColor" /> },
-  connectors: { title: '连接器', icon: <Data theme="outline" size={16} fill="currentColor" /> },
-  cloud: { title: '云桌面', icon: <Computer theme="outline" size={16} fill="currentColor" /> },
-  robots: { title: '机器人', icon: <Robot theme="outline" size={16} fill="currentColor" /> },
-} as const;
-const assets = overviewAssets.map((item) => ({ ...item, ...assetPresentation[item.key] }));
 
-function AssetItem({ title, used, total, icon }: { title: string; used: number; total: number; icon: ReactNode }) {
-  return <div className={styles.assetItem}><span className={styles.assetIcon}>{icon}</span><strong>{used}/{total}</strong><span>{title}</span></div>;
+function AnnouncementTitle({ title }: { title: string }) {
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = useState(false);
+
+  useEffect(() => {
+    const titleElement = titleRef.current;
+    if (!titleElement) return undefined;
+    const updateOverflow = () => setOverflow(titleElement.scrollWidth > titleElement.clientWidth);
+    updateOverflow();
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(titleElement);
+    return () => observer.disconnect();
+  }, [title]);
+
+  const content = <span ref={titleRef}>{title}</span>;
+  return overflow ? <Tooltip content={title} trigger={['hover', 'focus']}>{content}</Tooltip> : content;
 }
 
-function Donut({ value, label, spec }: { value: string; label: string; spec: IPieChartSpec }) {
-  return <div className={styles.donut}><Suspense fallback={null}><DistributionChart spec={spec} /></Suspense><div><strong>{value}</strong><span>{label}</span></div></div>;
+type ScheduleTaskBlock = OverviewRobotSchedule['blocks'][number];
+
+const getScheduleClock = (dateTime: string) => dateTime.match(/(\d{2}:\d{2}(?::\d{2})?)$/)?.[1] ?? dateTime;
+const getScheduleTooltipPosition = (columnIndex: number, columnCount: number) => columnCount === 1 ? 'top' : columnIndex <= 1 ? 'right' : columnIndex >= columnCount - 2 ? 'left' : 'top';
+const scheduleTooltipTriggerProps = { autoFitPosition: true, boundaryDistance: { left: 16, right: 16, top: 16, bottom: 16 } } as const;
+const scheduleTooltipStyle = { width: 'max-content', maxWidth: 'min(660px, calc(100vw - 48px))' } as CSSProperties;
+
+function ScheduleTaskContent({ block, compact = false }: { block: ScheduleTaskBlock; compact?: boolean }) {
+  const timeAndDuration = <><time>{getScheduleClock(block.startTime)}~{getScheduleClock(block.endTime)}</time>（{formatOverviewTaskDuration(block.startTime, block.endTime)}）</>;
+  if (compact) return <><i /><span>{block.label} {timeAndDuration}</span></>;
+  return <><i /><span>{block.label}</span><small>{timeAndDuration}</small></>;
 }
 
-function PendingDeliveryTooltip() {
-  return <ol className={styles.pendingTooltip}>{overviewPendingStoreDetails.map((store) => <li key={store.storeName}><strong>{store.storeName}</strong><ul>{store.plans.map((plan) => <li key={plan.planName}>{plan.planName} · {plan.errorDetail}</li>)}</ul></li>)}</ol>;
+function ScheduleTaskTooltip({ block }: { block: ScheduleTaskBlock }) {
+  const stores = block.stores ?? [];
+  const tables = block.tables ?? [];
+  const failed = block.latestWorkResult === 'failed';
+  return <div className={styles.scheduleTaskTooltip}>
+    <strong>{block.label}</strong>
+    <span>运行次数：{block.runCount ?? 0} 次</span>
+    <span>最新结果：<b className={failed ? styles.tooltipFailure : styles.tooltipSuccess}>{failed ? `失败（${block.latestWorkErrorCode ?? '未知错误码'}）` : '入库成功'}</b></span>
+    <div className={styles.tooltipStores}><span>涉及店铺（{stores.length}）</span><div className={styles.tooltipStoreList}>{stores.length ? stores.map((store, index) => <em key={store}>{store}{index < stores.length - 1 ? '、' : ''}</em>) : <em>暂无</em>}</div></div>
+    <div className={styles.tooltipStores}><span>涉及入库表</span><div className={styles.tooltipStoreList}>{tables.length ? tables.map((table, index) => <em key={table}>{table}{index < tables.length - 1 ? '、' : ''}</em>) : <em>暂无</em>}</div></div>
+  </div>;
 }
 
-export default function QsbOverview({ onViewRuns }: QsbOverviewProps) {
+export function TimeRobotCalendar({ robots, days, period, isFullscreen, onToggleFullscreen, annotated = true, robotCount = robots.length }: {
+  robots: readonly OverviewRobotSchedule[];
+  days: ReturnType<typeof buildOverviewTimeCalendarDays>;
+  period: 'daily' | 'weekly';
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  annotated?: boolean;
+  robotCount?: number;
+}) {
+  const calendarStyle = { '--calendar-day-count': days.length } as CSSProperties;
+  const firstScheduleTask = robots.flatMap((robot) => days.flatMap((day, dayIndex) => (
+    robot.blocks
+      .filter((block) => period === 'daily' || block.startSlot === dayIndex)
+      .map((block) => `${robot.name}:${day.date}:${block.startTime}:${block.label}`)
+  )))[0];
+  return <div className={`${styles.schedule} ${styles.timeRobotCalendar}`} style={calendarStyle} aria-label={`机器人${period === 'daily' ? '每日' : '每周'}运行日历`}>
+    <div className={styles.timeCalendarHeader}>
+      <span><span>机器人（{robotCount}）</span><Tooltip content={isFullscreen ? '退出全屏' : '全屏查看'}><Button data-note-id={annotated ? 'QSB-2.3' : undefined} className={styles.scheduleFullscreenButton} shape="circle" aria-label={isFullscreen ? '退出全屏' : '全屏查看'} icon={isFullscreen ? <IconFullscreenExit /> : <IconFullscreen />} onClick={onToggleFullscreen} /></Tooltip></span>
+      <small>GMT+08</small>
+      <div className={styles.timeCalendarDays}>{days.map((day) => <strong key={day.date}><span>{day.weekday}</span><time dateTime={day.date}>{String(day.day).padStart(2, '0')}</time></strong>)}</div>
+    </div>
+    {robots.map((robot) => <div className={styles.timeRobotGroup} key={robot.name}>
+      <div className={styles.timeRobotName}><strong>{robot.name}</strong><span>{robot.planCount} 个计划</span>{robot.overLimit && <RobotOverloadBadge />}</div>
+      <div className={styles.timeCalendarBody}>
+        <div className={styles.hourAxis}>{overviewCalendarHourLabels.map((label, hour) => <time key={label} style={{ '--hour-index': hour } as CSSProperties}>{label}</time>)}</div>
+        <div className={styles.timeDayColumns}>
+          {days.map((day, dayIndex) => <div className={styles.timeDayColumn} key={day.date}>
+            {robot.blocks.filter((block) => period === 'daily' || block.startSlot === dayIndex).map((block, blockIndex) => {
+              const position = getOverviewTimeEventLayout(block.startTime, block.endTime);
+              const scheduleTaskId = `${robot.name}:${day.date}:${block.startTime}:${block.label}`;
+              return <Tooltip key={`${block.startTime}-${block.label}-${blockIndex}`} position={getScheduleTooltipPosition(dayIndex, days.length)} triggerProps={scheduleTooltipTriggerProps} style={scheduleTooltipStyle} trigger={['hover', 'focus']} content={<ScheduleTaskTooltip block={block} />}><div
+                className={`${styles.scheduleTaskItem} ${styles.timeCalendarEvent} ${position.compact ? styles.compactScheduleTaskItem : ''} ${styles[block.tone]}`}
+                data-note-id={annotated && scheduleTaskId === firstScheduleTask ? 'QSB-2.4' : undefined}
+                style={{ top: `${position.top}%`, height: `${position.height}%` }}
+                title={`${block.label} ${block.startTime}~${block.endTime}`}
+                aria-label={`${block.label} ${block.startTime}~${block.endTime}`}
+                tabIndex={0}
+              ><ScheduleTaskContent block={block} compact={position.compact} /></div></Tooltip>;
+            })}
+          </div>)}
+        </div>
+      </div>
+    </div>)}
+  </div>;
+}
+
+export function MonthlyRobotCalendar({ robots, calendarDays, isFullscreen, onToggleFullscreen, annotated = true, robotCount = robots.length }: {
+  robots: readonly OverviewRobotSchedule[];
+  calendarDays: ReturnType<typeof buildOverviewMonthlyCalendarDays>;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  annotated?: boolean;
+  robotCount?: number;
+}) {
+  const weekdays = getOverviewScheduleAxis('cumulative').labels;
+  const firstScheduleTask = robots.flatMap((robot) => calendarDays.flatMap((day) => (
+    robot.blocks
+      .filter((block) => block.startTime.startsWith(day.date))
+      .map((block) => `${robot.name}:${day.date}:${block.startTime}:${block.label}`)
+  )))[0];
+  return <div className={`${styles.schedule} ${styles.monthlyRobotCalendar}`} aria-label="机器人月度运行排期">
+    <div className={styles.monthlyCalendarHeader}>
+      <span><span>机器人（{robotCount}）</span><Tooltip content={isFullscreen ? '退出全屏' : '全屏查看'}><Button data-note-id={annotated ? 'QSB-2.3' : undefined} className={styles.scheduleFullscreenButton} shape="circle" aria-label={isFullscreen ? '退出全屏' : '全屏查看'} icon={isFullscreen ? <IconFullscreenExit /> : <IconFullscreen />} onClick={onToggleFullscreen} /></Tooltip></span>
+      <div className={styles.monthlyWeekdays}>{weekdays.map((weekday) => <strong key={weekday}>{weekday}</strong>)}</div>
+    </div>
+    {robots.map((robot) => <div className={styles.monthlyRobotGroup} key={robot.name}>
+      <div className={styles.monthlyRobotName}><strong>{robot.name}</strong><span>{robot.planCount} 个计划</span>{robot.overLimit && <RobotOverloadBadge />}</div>
+      <div className={styles.monthlyCalendarGrid}>
+        {calendarDays.map((day, dayIndex) => {
+          const dayTasks = robot.blocks.filter((block) => block.startTime.startsWith(day.date));
+          return <div className={`${styles.monthlyDayCell} ${day.inCurrentMonth ? '' : styles.outsideMonth}`} key={day.date}>
+            <time dateTime={day.date}>{day.day}</time>
+            <div className={styles.monthlyDayTasks}>
+              {dayTasks.map((block, taskIndex) => <Tooltip
+                key={`${block.startTime}-${block.label}-${taskIndex}`}
+                position={getScheduleTooltipPosition(dayIndex % 7, 7)}
+                triggerProps={scheduleTooltipTriggerProps}
+                style={scheduleTooltipStyle}
+                trigger={['hover', 'focus']}
+                content={<ScheduleTaskTooltip block={block} />}
+              ><div
+                  className={`${styles.scheduleTaskItem} ${styles[block.tone]}`}
+                  data-note-id={annotated && `${robot.name}:${day.date}:${block.startTime}:${block.label}` === firstScheduleTask ? 'QSB-2.4' : undefined}
+                  aria-label={`${block.label} ${block.startTime.slice(-8)}~${block.endTime.slice(-8)}（${formatOverviewTaskDuration(block.startTime, block.endTime)}）`}
+                  tabIndex={0}
+                ><ScheduleTaskContent block={block} /></div></Tooltip>)}
+            </div>
+          </div>;
+        })}
+      </div>
+    </div>)}
+  </div>;
+}
+
+export default function QsbOverview({ announcements, onOpenAnnouncement, onOpenAnnouncements }: QsbOverviewProps) {
+  const openAnnouncement = (id: string) => onOpenAnnouncement?.(id);
   const scheduleViewportRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [period, setPeriod] = useState<OverviewPeriodKey>('daily');
+  const [period, setPeriod] = useState<OverviewPeriodKey>('cumulative');
   const [scheduleView, setScheduleView] = useState<OverviewScheduleViewKey>('robot');
+  const [scheduleMonth, setScheduleMonth] = useState({ year: 2026, monthIndex: 7 });
+  const [scheduleAnchorDate, setScheduleAnchorDate] = useState(overviewTimeCalendarAnchorDate);
   const [dataSnapshotIndex, setDataSnapshotIndex] = useState(0);
   const [selectedAnomalyKey, setSelectedAnomalyKey] = useState<(typeof overviewAnomalyGroups)[number]['key']>('login');
-  const selectedAnomalyGroup = overviewAnomalyGroups.find((item) => item.key === selectedAnomalyKey) ?? overviewAnomalyGroups[0];
+  const workRetry = useWorkRetry(overviewAnomalyGroups.flatMap((group) => group.rows));
+  const anomalyGroups = overviewAnomalyGroups.map((group) => ({ ...group, rows: workRetry.rows.filter((row) => group.rows.some((initial) => initial.workId === row.workId)) }));
+  const selectedAnomalyGroup = anomalyGroups.find((item) => item.key === selectedAnomalyKey) ?? anomalyGroups[0];
+  const [workDetail, setWorkDetail] = useState<RunRecord | null>(null);
+  const visibleAnomalies = selectedAnomalyGroup.rows;
   const selectedPeriodMetrics = overviewRunMetricsByPeriod[period];
+  const displayedAnnouncements = useMemo(() => announcements
+    .filter((item) => item.status === 'published' && (item.range === '全部租户' || item.range === '电商取数宝'))
+    .sort((left, right) => Date.parse(right.publishedAt) - Date.parse(left.publishedAt)), [announcements]);
   const overviewView = useMemo(() => buildOverviewViewModel(period), [period]);
   const dataSnapshot = overviewDataSnapshots[dataSnapshotIndex];
-  const valueSpec = useMemo<IAreaChartSpec>(() => buildSemiSparklineSpec(overviewAccountSummary.sparklineValues), []);
-  const runTrendDataSpec = useMemo<IAreaChartSpec>(() => buildOverviewRunTrendSpec(period), [period]);
-  const selectedRobotSchedules = useMemo(() => getOverviewRobotSchedules(period), [period]);
-  const selectedRobotLayouts = useMemo(() => selectedRobotSchedules.map((robot) => period === 'weekly'
-    ? buildWeeklyRobotLayout(robot)
-    : { rowHeight: 64, blocks: robot.blocks.map((block) => ({ ...block, top: 4, conflictIndex: 0, conflictCount: 1 })) }), [period, selectedRobotSchedules]);
-  const selectedScheduleAxis = useMemo(() => getOverviewScheduleAxis(period), [period]);
-  const scheduleContentWidth = selectedScheduleAxis.labels.length * selectedScheduleAxis.unitWidth;
-  const scheduleStyle = {
-    '--schedule-content-width': `${scheduleContentWidth}px`,
-    '--schedule-unit-width': `${selectedScheduleAxis.unitWidth}px`,
-    '--schedule-unit-count': selectedScheduleAxis.labels.length,
-  } as CSSProperties;
+  const runTrendDataSpec = useMemo<ILineChartSpec>(() => buildOverviewRunTrendSpec(period), [period]);
+  const selectedRobotSchedules = useMemo(() => period === 'cumulative'
+    ? getOverviewMonthlyRobotSchedules(scheduleMonth.year, scheduleMonth.monthIndex)
+    : getOverviewRobotSchedules(period), [period, scheduleMonth]);
+  const monthlyCalendarDays = useMemo(() => buildOverviewMonthlyCalendarDays(scheduleMonth.year, scheduleMonth.monthIndex), [scheduleMonth]);
+  const timeCalendarDays = useMemo(() => buildOverviewTimeCalendarDays(period === 'weekly' ? 'weekly' : 'daily', scheduleAnchorDate), [period, scheduleAnchorDate]);
   const completionSpec = useMemo<ILinearProgressChartSpec>(() => buildDataCompletionSpec(dataSnapshot.completionRate), [dataSnapshot.completionRate]);
-  const deliverySpec = useMemo<IPieChartSpec>(() => buildDataOverviewDonutSpec([
-    { type: '已完成', value: dataSnapshot.storeDelivery.completed },
-    { type: '重试中', value: dataSnapshot.storeDelivery.retrying },
-    { type: '需处理', value: dataSnapshot.storeDelivery.pending },
-  ], ['#165dff', '#cdd3df', '#f53f3f']), [dataSnapshot.storeDelivery]);
-  const platformSpec = useMemo<IPieChartSpec>(() => buildDataOverviewDonutSpec(
-    dataSnapshot.platforms.map((platform) => ({ type: platform.name, value: platform.total })),
-  ), [dataSnapshot.platforms]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -85,49 +218,80 @@ export default function QsbOverview({ onViewRuns }: QsbOverviewProps) {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  useEffect(() => {
+    const showDataView = () => setScheduleView('data');
+    const showRobotView = () => setScheduleView('robot');
+    window.addEventListener('qsb-overview:show-data-view', showDataView);
+    window.addEventListener('qsb-overview:show-robot-view', showRobotView);
+    return () => {
+      window.removeEventListener('qsb-overview:show-data-view', showDataView);
+      window.removeEventListener('qsb-overview:show-robot-view', showRobotView);
+    };
+  }, []);
+
   const toggleFullscreen = async () => {
     try {
-      if (document.fullscreenElement === scheduleViewportRef.current) await document.exitFullscreen();
+      if (isFullscreen) await document.exitFullscreen();
       else await scheduleViewportRef.current?.requestFullscreen();
     }
     catch { Message.warning('当前浏览器未允许进入全屏'); }
   };
 
+  const canNavigateForward = canNavigateOverviewScheduleForward(period, scheduleAnchorDate, scheduleMonth.year, scheduleMonth.monthIndex);
+  const shiftScheduleMonth = (offset: number) => setScheduleMonth((current) => {
+    if (offset > 0 && !canNavigateForward) return current;
+    const nextMonth = new Date(current.year, current.monthIndex + offset, 1);
+    return { year: nextMonth.getFullYear(), monthIndex: nextMonth.getMonth() };
+  });
+  const shiftScheduleDate = (offset: number) => setScheduleAnchorDate((current) => {
+    if (offset > 0 && !canNavigateForward) return current;
+    const [year, month, day] = current.split('-').map(Number);
+    const nextDate = new Date(year, month - 1, day + offset);
+    return [nextDate.getFullYear(), String(nextDate.getMonth() + 1).padStart(2, '0'), String(nextDate.getDate()).padStart(2, '0')].join('-');
+  });
+  const scheduleNavigationLabel = period === 'cumulative'
+    ? `${scheduleMonth.year}年${scheduleMonth.monthIndex + 1}月`
+    : period === 'daily'
+      ? `${timeCalendarDays[0].date.replace(/-(\d{2})-(\d{2})$/, '年$1月$2日')}`
+      : `${timeCalendarDays[0].date.slice(0, 4)}年${Number(timeCalendarDays[0].date.slice(5, 7))}月${timeCalendarDays[0].day}日–${timeCalendarDays[6].day}日`;
+
   return <div className={styles.page}><div className={styles.dashboard}>
     <aside className={styles.leftRail}>
-      <section className={`${styles.card} ${styles.accountCard}`}>
-        <img src={logo} alt="取数宝" />
-        <div className={styles.companyRow}><h1>森森科技有限公司</h1><span>自用版</span></div>
-        <div className={styles.valueRow}><div><strong>{numberFormatter.format(overviewAccountSummary.savedLaborDays)}<small>天</small></strong><span>累计已节省人力</span></div><div className={styles.valueSpark}><Suspense fallback={null}><MetricSparklineChart spec={valueSpec} /></Suspense></div></div>
-        <div className={styles.expiry}><i />到期时间：{overviewAccountSummary.expiresAt}<button type="button">续期</button></div>
+      <section className={`${styles.card} ${styles.accountCard}`} data-note-id="QSB-1.1">
+        <OverviewAccountContent />
       </section>
-      <section className={`${styles.card} ${styles.assetCard}`}><div className={styles.cardHeading}><h2>我的资产</h2><button type="button">增购</button></div><div className={styles.assetGrid}>{assets.map(({ key, ...item }) => <AssetItem key={key} {...item} />)}</div></section>
-      <section className={`${styles.card} ${styles.announcementCard}`}><div className={styles.cardHeading}><h2>公告</h2></div><div className={styles.announcementList}>{overviewAnnouncements.map(({ title, publishedAt }) => <div key={title}><span>{title}</span><time dateTime={publishedAt}>{formatOverviewAnnouncementDate(publishedAt)}</time></div>)}</div></section>
+      <section className={`${styles.card} ${styles.assetCard}`} data-note-id="QSB-1.2"><div className={styles.cardHeading}><h2>我的资产</h2><button type="button">增购</button></div><OverviewAssetGrid /></section>
+      <section className={`${styles.card} ${styles.announcementCard}`} data-note-id="QSB-1.3"><div className={styles.cardHeading}><h2>公告</h2><Button type="text" size="mini" onClick={onOpenAnnouncements}>更多</Button></div><div className={styles.announcementList}>{displayedAnnouncements.length ? displayedAnnouncements.map(({ id, title, publishedAt }) => <button type="button" key={id} onClick={() => openAnnouncement(id)}><AnnouncementTitle title={title} /><time dateTime={publishedAt}>{formatOverviewAnnouncementDate(publishedAt)}</time></button>) : <div className={styles.announcementEmpty}><Empty description="暂无公告" /></div>}</div></section>
       <section className={`${styles.card} ${styles.resourceCard}`}><h2>资源中心</h2><a href={HELP_CENTER_URL} target="_blank" rel="noreferrer"><BookOpen theme="outline" size={16} fill="currentColor" />帮助文档</a><a href={`${HELP_CENTER_URL}sla`} target="_blank" rel="noreferrer"><FileText theme="outline" size={16} fill="currentColor" />SLA 服务手册</a></section>
     </aside>
 
     <main className={styles.mainColumn}>
       <section className={`${styles.card} ${styles.runTrendCard}`}>
-        <div className={styles.runTrendHeading}><div><h2>{overviewCopy.trendTitle}</h2><span>更新时间：{overviewView.updatedAtLabel}（以小时进行更新）</span></div><div className={styles.periodTabs} role="tablist" aria-label="运行趋势周期">{([['daily', '每日'], ['weekly', '每周'], ['cumulative', '累计']] as const).map(([key, label]) => <button type="button" role="tab" aria-selected={period === key} className={period === key ? styles.active : ''} key={key} onClick={() => setPeriod(key)}>{label}</button>)}</div></div>
-        <div className={styles.runMetricGrid}>{selectedPeriodMetrics.metrics.map((item) => <div key={item.key} className={styles.runMetric}><span>{item.label}</span><strong>{numberFormatter.format(item.value)}<small>{item.suffix}</small></strong><span>{selectedPeriodMetrics.comparisonLabel} <b className={item.change > 0 ? styles.up : styles.down}>{item.change > 0 ? '↑' : '↓'} {Math.abs(item.change).toFixed(1)}%</b></span></div>)}</div>
+        <div className={styles.runTrendSummary} data-note-id="QSB-2.1"><div className={styles.runTrendHeading}><div><h2>{overviewCopy.trendTitle}</h2></div><div className={styles.periodTabs} role="tablist" aria-label="运行趋势周期">{overviewPeriodOptions.map(({ key, label }) => <button type="button" role="tab" aria-selected={period === key} className={period === key ? styles.active : ''} key={key} onClick={() => setPeriod(key)}>{label}</button>)}</div></div>
+        <div className={styles.runMetricGrid}>{selectedPeriodMetrics.metrics.map((item) => <div key={item.key} className={styles.runMetric}><span>{item.label}</span><strong>{numberFormatter.format(item.value)}<small>{item.suffix}</small></strong><span className={styles.comparisonRow}>{selectedPeriodMetrics.comparisonLabel}<TrendIndicator value={item.change} className={item.change > 0 ? styles.up : styles.down} /></span></div>)}</div></div>
         <div className={styles.trendDivider} />
-        <div className={styles.scheduleToolbar}><div className={styles.viewSwitch}>{overviewScheduleViews.map((view) => <Tooltip key={view.key} content={view.label}><button type="button" aria-label={view.label} aria-pressed={scheduleView === view.key} className={scheduleView === view.key ? styles.active : ''} onClick={() => setScheduleView(view.key)}>{view.key === 'data' ? <IconApps /> : <IconRobot />}</button></Tooltip>)}</div>{scheduleView === 'data' ? <div className={styles.dataViewLegend} aria-label="运行数据图例"><span><i className={styles.totalRunLegend} />总运行</span><span><i className={styles.failedRunLegend} />取数失败次数</span><span><i className={styles.ingestedRunLegend} />入库成功次数</span></div> : <div className={styles.scheduleAlert}><i />当机器人超出运行上限时，计划可能将无法按时执行，请合理安排任务</div>}</div>
+        <div className={styles.scheduleToolbar}>
+          <div className={styles.viewSwitch} data-note-id="QSB-2.2">{overviewScheduleViews.map((view) => <Tooltip key={view.key} content={view.label}><button type="button" aria-label={view.label} aria-pressed={scheduleView === view.key} className={scheduleView === view.key ? styles.active : ''} onClick={() => setScheduleView(view.key)}>{view.key === 'data' ? <IconApps /> : <IconRobot />}</button></Tooltip>)}</div>
+          {scheduleView === 'data'
+            ? <div className={styles.dataViewLegend} aria-label="运行数据图例">{overviewRunTrendSeries.map((series) => <RunTrendLegendItem key={series.key} seriesKey={series.key} />)}</div>
+            : <><div>{shouldShowOverviewOverloadWarning(scheduleView, selectedRobotSchedules) && <RobotOverloadWarning />}</div><div className={styles.scheduleToolbarActions}><div className={styles.monthlyCycleLegend} aria-label="计划周期图例">{overviewMonthlyPlanCycleLegend.map((item) => <span key={item.label}><i className={styles[item.tone]} />{item.label}</span>)}</div><div className={styles.monthNavigator} data-note-id="QSB-2.3" aria-label="排期日期切换"><button type="button" aria-label="上一个周期" onClick={() => period === 'cumulative' ? shiftScheduleMonth(-1) : shiftScheduleDate(period === 'weekly' ? -7 : -1)}><IconLeft /></button><button type="button" aria-label="下一个周期" disabled={!canNavigateForward} onClick={() => period === 'cumulative' ? shiftScheduleMonth(1) : shiftScheduleDate(period === 'weekly' ? 7 : 1)}><IconRight /></button><strong>{scheduleNavigationLabel}</strong></div></div></>}
+        </div>
         <div ref={scheduleViewportRef} className={styles.scheduleViewport}>
           {scheduleView === 'data'
-            ? <div className={styles.runTrendDataView} aria-label="运行数据视图"><div className={styles.runTrendDataChart}><Suspense fallback={null}><RunTrendDataChart spec={runTrendDataSpec} /></Suspense></div></div>
-            : <div className={styles.schedule} aria-label={`机器人${period === 'daily' ? '每日' : period === 'weekly' ? '每周' : '累计'}运行排期`}><div className={styles.scheduleCanvas} style={scheduleStyle}><div className={styles.scheduleAxis}><span><span>机器人</span><Tooltip content={isFullscreen ? '退出全屏' : '全屏查看'}><Button className={styles.scheduleFullscreenButton} shape="circle" aria-label={isFullscreen ? '退出全屏' : '全屏查看'} icon={isFullscreen ? <IconFullscreenExit /> : <IconFullscreen />} onClick={toggleFullscreen} /></Tooltip></span>{selectedScheduleAxis.labels.map((label) => <time key={label}>{label}</time>)}</div>{selectedRobotSchedules.map((robot, index) => { const layout = selectedRobotLayouts[index]; return <div className={styles.scheduleRow} style={{ height: layout.rowHeight }} key={robot.name}><div className={styles.robotName}><strong>{robot.name}（{robot.planCount} 个计划）</strong>{index < 2 && <span>超限</span>}</div><div className={styles.timeline}>{layout.blocks.map((block, blockIndex) => { const position = getOverviewScheduleBlockPosition(period, block); const isWeekly = period === 'weekly'; const isStacked = isWeekly || (block.stackCount ?? 1) > 1; const conflictOffset = isWeekly ? block.conflictIndex * 4 : 0; const stackedTop = isWeekly ? block.top : 4 + (block.stackIndex ?? 0) * 6; return <div key={`${block.startTime}-${block.label}-${blockIndex}`} className={`${styles.taskBlock} ${isStacked ? styles.stackedTask : ''} ${isWeekly ? styles.weeklyTask : ''} ${styles[block.tone]}`} style={{ left: isStacked ? `calc(${position.left}% + ${8 + conflictOffset}px)` : `${position.left}%`, width: isStacked ? `calc(${position.width}% - ${16 + conflictOffset}px)` : `${position.width}%`, top: isStacked ? `${stackedTop}px` : undefined, zIndex: isStacked ? (isWeekly ? block.conflictIndex + 1 : (block.stackIndex ?? 0) + 1) : undefined }}><strong>{block.label}</strong><span>{block.startTime}~{block.endTime}</span></div>; })}</div></div>; })}</div></div>}
+              ? <div className={styles.runTrendDataView} data-note-id="QSB-2.5" aria-label="运行数据视图"><div className={styles.runTrendDataChart}><Suspense fallback={<RunTrendLoading />}><RunTrendDataChart spec={runTrendDataSpec} /></Suspense></div></div>
+            : period === 'cumulative'
+              ? <MonthlyRobotCalendar robots={selectedRobotSchedules} calendarDays={monthlyCalendarDays} isFullscreen={isFullscreen} onToggleFullscreen={toggleFullscreen} />
+              : <TimeRobotCalendar robots={selectedRobotSchedules} days={timeCalendarDays} period={period} isFullscreen={isFullscreen} onToggleFullscreen={toggleFullscreen} />}
         </div>
       </section>
 
-      <section className={`${styles.card} ${styles.dataOverviewCard}`}>
-        <div className={styles.cardHeading}><h2>{overviewCopy.dataOverviewTitle}</h2><button type="button" onClick={() => Message.info('前往新建计划')}>＋ 新建计划</button></div>
-        <div className={styles.dataOverviewGrid}><div className={styles.completionBlock}><span>数据完成率</span><strong>{dataSnapshot.completionRate.toFixed(1)}%</strong><div className={styles.completionChart}><Suspense fallback={null}><ProgressChart spec={completionSpec} /></Suspense></div><small>完成数据表：{numberFormatter.format(dataSnapshot.completedSourceCount)}/{numberFormatter.format(dataSnapshot.totalSourceCount)}</small></div><div className={styles.deliveryBlock}><Donut value={String(overviewStoreDelivery.total)} label="今日涉及店铺" spec={deliverySpec} /><div className={styles.compactLegend}><span><i className={styles.blueDot} />已完成：<b>{dataSnapshot.storeDelivery.completed} 店</b></span><span><i />重试中：<b>{dataSnapshot.storeDelivery.retrying} 店</b></span><Tooltip content={<PendingDeliveryTooltip />} position="right"><span className={styles.detailTrigger}><i className={styles.redDot} />需处理：<b>{dataSnapshot.storeDelivery.pending} 店</b></span></Tooltip></div></div><div className={styles.platformBlock}><Donut value={String(dataSnapshot.platformTotal)} label="平台交付情况" spec={platformSpec} /><div className={styles.platformLegend}>{dataSnapshot.platforms.map((platform) => <span key={platform.name}><i />{platform.name}：<b>{calculateRate(platform.total, dataSnapshot.platformTotal).toFixed(1)}%</b></span>)}</div></div></div>
-      </section>
-
-      <section className={`${styles.card} ${styles.anomalyCard}`}>
-        <div className={styles.anomalySummary}><span>{overviewCopy.anomalyTitle}</span><strong>{overviewView.anomalyRate.toFixed(1)}%</strong><small>异常数据表：{numberFormatter.format(overviewAnomalySummary.abnormalTableCount)}/{numberFormatter.format(overviewAnomalySummary.totalTableCount)}</small><small>比昨日同时段 <b>{overviewView.anomalyChange < 0 ? '↓' : '↑'} {Math.abs(overviewView.anomalyChange).toFixed(1)}%</b></small></div><div className={styles.anomalyDivider} />
-        <div className={styles.anomalyDetails}><div className={styles.anomalyTabs} role="tablist" aria-label="异常环节">{overviewAnomalyGroups.map((group) => <button type="button" role="tab" aria-selected={group.key === selectedAnomalyKey} className={group.key === selectedAnomalyKey ? styles.active : ''} key={group.key} onClick={() => setSelectedAnomalyKey(group.key)}>{group.label}</button>)}</div><div className={styles.anomalyRows} role="tabpanel">{selectedAnomalyGroup.rows.map((row) => <div key={row.runRecordKey} className={styles.anomalyRow}><strong title={`${row.platform} · ${row.planName} · ${row.occurredAt}`}>{row.storeName}</strong><span>{row.issueType}</span><span title={row.reason}>{row.reason}</span><button type="button" onClick={() => Message.success('已提交重试')}>重试</button><button type="button" onClick={() => onViewRuns?.(buildOverviewRunFilters(selectedAnomalyGroup, row))}>查看</button></div>)}</div></div>
+      <section className={`${styles.card} ${styles.completionCard}`}>
+        <div className={styles.completionMetrics} data-note-id="QSB-3.1">
+          <div className={styles.completionSummary}><span>{overviewCopy.completionTitle}</span><strong>{dataSnapshot.completionRate.toFixed(1)}%</strong><div className={styles.completionChart}><Suspense fallback={null}><ProgressChart spec={completionSpec} /></Suspense></div><small>完成数据表：{numberFormatter.format(dataSnapshot.completedSourceCount)}/{numberFormatter.format(dataSnapshot.totalSourceCount)}</small><small className={styles.comparisonRow}>同比：<TrendIndicator value={dataSnapshot.completionYoYChange} className={dataSnapshot.completionYoYChange >= 0 ? styles.up : styles.down} /></small></div>
+          <div className={styles.anomalySummary}><span>{overviewCopy.anomalyTitle}</span><strong>{overviewView.anomalyRate.toFixed(1)}%</strong><small>异常数据表：{numberFormatter.format(overviewAnomalySummary.abnormalTableCount)}/{numberFormatter.format(overviewAnomalySummary.totalTableCount)}</small><small className={styles.comparisonRow}>同比：<TrendIndicator value={overviewView.anomalyChange} className={overviewView.anomalyChange <= 0 ? styles.up : styles.down} /></small></div>
+        </div><div className={styles.anomalyDivider} />
+        <div className={styles.anomalyDetails} data-note-id="QSB-3.2"><Tabs activeTab={selectedAnomalyKey} className={styles.anomalyTabs} headerPadding={false} type="rounded" onChange={(key) => setSelectedAnomalyKey(key as (typeof overviewAnomalyGroups)[number]['key'])}>{anomalyGroups.map((group) => <TabPane key={group.key} title={`${group.label}（${group.rows.length}）`} />)}</Tabs><div className={styles.anomalyRows} role="tabpanel">{visibleAnomalies.map((row) => <OverviewAnomalyRecord key={row.workId} row={row} state={workRetry.states[row.workId]} recordKey={workRetry.records[row.workId]?.key ?? row.runRecordKey} remainingSeconds={workRetry.remainingSeconds[row.workId]} onRetry={() => void workRetry.retry(row)} onView={() => setWorkDetail(workRetry.records[row.workId] ?? buildOverviewWorkRecord(selectedAnomalyGroup, row))} />)}</div></div>
       </section>
     </main>
-  </div></div>;
+  </div><RunRecordDetailDrawer record={workDetail} onClose={() => setWorkDetail(null)} /></div>;
 }

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <rect width="1200" height="650" fill="#f5f6f8"/>
+  <rect x="28" y="24" width="1144" height="602" rx="16" fill="#fff"/>
+  <text x="58" y="69" font-family="Arial, PingFang SC, sans-serif" font-size="24" font-weight="700" fill="#1d2129">全量店铺数据交付监控</text>
+  <rect x="347" y="42" width="82" height="34" rx="17" fill="#fff1f0"/><text x="367" y="65" font-family="Arial, PingFang SC, sans-serif" font-size="14" font-weight="600" fill="#f53f3f">仅异常</text>
+  <text x="58" y="101" font-family="Arial, PingFang SC, sans-serif" font-size="15" fill="#86909c">统计范围 2026-09-02 00:00 至 15:00 · 数据截止 15:00:00</text>
+  <g font-family="Arial, PingFang SC, sans-serif">
+    <rect x="58" y="132" width="1084" height="92" rx="10" fill="#fff3f2" stroke="#ffd9d6"/><text x="82" y="165" font-size="14" fill="#86909c">异常店铺</text><text x="82" y="205" font-size="30" font-weight="700" fill="#f53f3f">5</text><text x="145" y="202" font-size="14" fill="#86909c">当前图片仅保留截止时间前已识别的异常数据</text>
+    <rect x="58" y="253" width="1084" height="52" rx="8" fill="#f2f3f5"/>
+    <g font-size="14" font-weight="600" fill="#4e5969"><text x="78" y="285">店铺名称</text><text x="300" y="285">关联计划</text><text x="665" y="285">异常阶段</text><text x="860" y="285">异常原因</text></g>
+    <g font-size="14" fill="#4e5969">
+      <text x="78" y="343">海雅京东自营店</text><text x="300" y="343">京东销售日报</text><text x="665" y="343">数据入库校验</text><text x="860" y="343" fill="#f53f3f">近 1 天数据缺失</text>
+      <line x1="58" y1="365" x2="1142" y2="365" stroke="#e5e6eb"/>
+      <text x="78" y="405">海雅抖音旗舰店</text><text x="300" y="405">抖店商品分析</text><text x="665" y="405">数据入库</text><text x="860" y="405" fill="#f53f3f">目标表写入失败</text>
+      <line x1="58" y1="427" x2="1142" y2="427" stroke="#e5e6eb"/>
+      <text x="78" y="467">海雅快手专营店</text><text x="300" y="467">商品成交日报</text><text x="665" y="467">数据入库校验</text><text x="860" y="467" fill="#f53f3f">记录数低于阈值</text>
+      <line x1="58" y1="489" x2="1142" y2="489" stroke="#e5e6eb"/>
+      <text x="78" y="529">海雅小红书旗舰店</text><text x="300" y="529">投放效果日报</text><text x="665" y="529">数据入库</text><text x="860" y="529" fill="#f53f3f">字段映射失败</text>
+      <line x1="58" y1="551" x2="1142" y2="551" stroke="#e5e6eb"/>
+      <text x="78" y="591">海雅得物旗舰店</text><text x="300" y="591">订单明细日报</text><text x="665" y="591">数据入库校验</text><text x="860" y="591" fill="#f53f3f">业务日期缺失</text>
+    </g>
+  </g>
+</svg>

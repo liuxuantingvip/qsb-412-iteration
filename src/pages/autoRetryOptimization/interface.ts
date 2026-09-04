@@ -3,6 +3,9 @@ export type RunIssueStage = 'login' | 'collection' | 'ingestion' | 'validation';
 
 export interface RunRecord {
   key: string;
+  workId?: string;
+  occurredAt?: string;
+  errorCode?: string;
   planName: string;
   storeName: string;
   startTime: string;
